@@ -22,7 +22,7 @@
 
 ### 1.下载代码文件
 
-点击<a href="https://gitee.com/slightning/Coco-Widget-Kitten-Cloud-Function/raw/main/%E4%B8%BB%E4%BD%93.js" download="源码云功能.js">这里</a>下载代码文件
+点击<a href="https://gitee.com/slightning/Coco-Widget-Kitten-Cloud-Function/raw/main/%E4%B8%BB%E4%BD%93.js" download="源码云功能.js">这里</a>下载代码文件。如果打不开链接，请复制链接地址后粘贴到下载器中下载。
 
 ### 2.导入到 Coco
 
@@ -42,11 +42,15 @@
 
 ```mermaid
 graph
-    start([开始])-->connect(连接)-->connectSuccee{{是否成功？}}--是-->init(初始化)-->initdone>触发事件：初始化完成（此时云变量可用）]
-    init--遇到云列表-->initList(初始化云列表)-->initListSuccee{{是否成功？}}--是-->initListDone>触发事件：云列表初始化完成（此时云列表可用）]
-    initListSuccee--否-->initListFailed>触发事件：云列表初始化失败]
+    start([开始])-->connect(连接)
+    connect-->connectSuccee{{是否成功？}}
+    connectSuccee--是-->init(初始化)
     connectSuccee--否-->connectFailed>触发事件：连接出现错误]
-
+    init-->initdone>触发事件：初始化完成（此时云变量可用）]
+    init--遇到云列表-->initList(初始化云列表)
+    initList-->initListSuccee{{是否成功？}}
+    initListSuccee--是-->initListDone>触发事件：云列表初始化完成（此时云列表可用）]
+    initListSuccee--否-->initListFailed>触发事件：云列表初始化失败]
 ```
 
 注意：
