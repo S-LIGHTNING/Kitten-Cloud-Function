@@ -53,6 +53,8 @@ graph TD
     initListSuccee--否-->initListFailed>触发事件：云列表初始化失败]
 ```
 
+若流程图加载失败，请点击[这里](https://gitee.com/slightning/Coco-Widget-Kitten-Cloud-Function/raw/main/coco-widget--kitten-cloud-function--connect.png)查看。
+
 注意：
 - 连接过程是异步执行的。
 - 连接云时需要处在未连接状态，如果存在连接，上一个连接会自动断开。
