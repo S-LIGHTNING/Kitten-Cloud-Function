@@ -41,7 +41,7 @@
 下图展示了该积木的运行方式。
 
 ```mermaid
-graph
+graph TD
     start([开始])-->connect(连接)
     connect-->connectSuccee{{是否成功？}}
     connectSuccee--是-->init(初始化)
