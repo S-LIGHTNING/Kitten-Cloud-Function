@@ -758,7 +758,7 @@ class Widget extends InvisibleWidget {
         }
     }
 
-    getVarInfo = (varName) => {
+    get = (varName) => {
         if (workID == 0) {
             this.widgetError("未连接到云")
             return
