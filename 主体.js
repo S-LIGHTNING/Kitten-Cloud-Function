@@ -1341,7 +1341,7 @@ class ListManager extends DataManager {
                     widget.emit("onListInsert", source, data.name, updateData.nth, updateData.value)
                     break
                 case "delete":
-                    switch (updateInfo.nth) {
+                    switch (updateData.nth) {
                         case "last":
                             var originalValue = data.value.slice(-1)[0]
                             data.value.splice(-1, 1)
@@ -1353,17 +1353,17 @@ class ListManager extends DataManager {
                             widget.emit("onListDeleteAll", source, data.name, originalList.slice())
                             break
                         default:
-                            var originalValue = data.value[updateInfo.nth - 1]
-                            data.value.splice(updateInfo.nth - 1, 1)
+                            var originalValue = data.value[updateData.nth - 1]
+                            data.value.splice(updateData.nth - 1, 1)
                             widget.emit("onListDelete", source, data.name, updateData.nth, originalValue)
                             break
                     }
                     break
                 case "replace":
-                    switch (updateInfo.nth) {
+                    switch (updateData.nth) {
                         case "last":
                             var originalValue = data.value.slice(-1)[0]
-                            data.value.splice(-1, 1, updateInfo.value)
+                            data.value.splice(-1, 1, updateData.value)
                             widget.emit("onListReplace", source, data.name, data.value.length, originalValue, updateData.value)
                             break
                         case "all":
@@ -1373,7 +1373,7 @@ class ListManager extends DataManager {
                             break
                         default:
                             var originalValue = data.value.slice(updateData.nth - 1)[0]
-                            data.value.splice(updateData.nth - 1, 1, updateInfo.value)
+                            data.value.splice(updateData.nth - 1, 1, updateData.value)
                             widget.emit("onListReplace", source, data.name, updateData.nth, originalValue.slice(), updateData.value.slice())
                             break
                     }
@@ -1412,7 +1412,7 @@ class ListManager extends DataManager {
                     nth: updateData.nth + 1
                 }
             case "delete":
-                switch (updateInfo.nth) {
+                switch (updateData.nth) {
                     case "last":
                         return {
                             action: "append",
@@ -1439,7 +1439,7 @@ class ListManager extends DataManager {
                         }
                 }
             case "replace":
-                switch (updateInfo.nth) {
+                switch (updateData.nth) {
                     case "last":
                         return {
                             action: "replace",
