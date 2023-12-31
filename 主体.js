@@ -1,21 +1,44 @@
+const PRIVATE_VAR = 0, PUBLIC_VAR = 1, LIST = 2, VAR = 3, ALL = 4
+const READ = 0, WRITE = 1, READWRITE = 2
+const LOCAL = 0, CLOUD = 1, UNDO = 2, REDO = 3
+const MALE = 1, FEMALE = 0
+
+const axios = require("axios")
+
 const types = {
     type: "SLIGHTNING_KITTEN_CLOUD_FUNCTION",
     title: "源码云功能",
+    author: "SLIGHTNING",
     icon: "icon-widget-cloud-room",
+	version: "1.0.0",
     isInvisibleWidget: true,
     isGlobalWidget: true,
     properties: [
         {
             key: "autoReconnect",
-            label: "自动重连", 
+            label: "断开时自动重连", 
             valueType: "boolean",
             defaultValue: true
-        },
-        {
-            key: "cacheTime",
-            label: "缓存时间", 
+        }, {
+            key: "maxRetryTimes",
+            label: "最大出错重试次数", 
             valueType: "number",
-            defaultValue: 0
+            defaultValue: 2
+        }, {
+            key: "privateVarLocalPreUpdate",
+            label: "私有云变量本地预更新", 
+            valueType: "boolean",
+            defaultValue: true
+        }, {
+            key: "publicVarLocalPreUpdate",
+            label: "共有云变量本地预更新", 
+            valueType: "boolean",
+            defaultValue: true
+        }, {
+            key: "listLocalPreUpdate",
+            label: "云列表本地预更新", 
+            valueType: "boolean",
+            defaultValue: false
         }
     ],
     methods: [
@@ -31,58 +54,136 @@ const types = {
                 }
             ],
             blockOptions: {
-                color: "#e7729b",
+                color: "#c571d8",
                 callMethodLabel: false,
-                line: "连接" 
+                line: "连接"
             }
-        },
-        {
+        }, {
             key: "disconnect",
             label: "断开",
             params: [],
             blockOptions: {
-                color: "#e7729b",
+                color: "#c571d8",
                 callMethodLabel: false
             }
-        },
-        {
+        }, {
             key: "connectedWorkID",
             label: "已连接作品编号",
             params: [],
             valueType: "number",
             blockOptions: {
-                color: "#e7729b",
+                color: "#c571d8",
+                callMethodLabel: false
+            }
+        }, {
+            key: "able",
+            params: [
+                {
+                    key: "dateType",
+                    valueType: "number",
+                    dropdown: [
+                        { label: "云变量", value: VAR },
+                        { label: "云变量", value: LIST },
+                        { label: "所有", value: ALL }
+                    ]
+                }, {
+                    key: "operation",
+                    label: "可",
+                    valueType: "number",
+                    dropdown: [
+                        { label: "读", value: READ },
+                        { label: "写", value: WRITE },
+                        { label: "读写", value: READWRITE }
+                    ]
+                }
+            ],
+            valueType: "boolean",
+            blockOptions: {
+                color: "#c571d8",
                 callMethodLabel: false,
                 space: 40
             }
-        },
-        {
+        }, {
+            key: "dataType",
+            params: [
+                {
+                    key: "type",
+                    valueType: "number",
+                    dropdown: [
+                        { label: "私有云变量", value: PRIVATE_VAR },
+                        { label: "共有云变量", value: PUBLIC_VAR },
+                        { label: "云列表", value: LIST }
+                    ]
+                }
+            ],
+            valueType: "number",
+            blockOptions: {
+                color: "#54b76f",
+                callMethodLabel: false,
+                line: "枚举"
+            }
+        }, {
+            key: "sourceType",
+            params: [
+                {
+                    key: "type",
+                    valueType: "number",
+                    dropdown: [
+                        { label: "本地", value: LOCAL },
+                        { label: "云端", value: CLOUD },
+                        { label: "撤销", value: UNDO },
+                        { label: "重做", value: REDO }
+                    ]
+                }
+            ],
+            valueType: "number",
+            blockOptions: {
+                color: "#54b76f",
+                callMethodLabel: false
+            }
+        }, {
+            key: "sexType",
+            params: [
+                {
+                    key: "type",
+                    valueType: "number",
+                    dropdown: [
+                        { label: "男♂️", value: MALE },
+                        { label: "女♀️", value: FEMALE }
+                    ]
+                }
+            ],
+            valueType: "number",
+            blockOptions: {
+                color: "#54b76f",
+                callMethodLabel: false,
+                space: 40
+            }
+        }, {
             key: "get",
             params: [
                 {
-                    key: "varName",
+                    key: "name",
                     valueType: "string",
                     defaultValue: "云变量"
                 }
             ],
-            valueType: "string",
+            valueType: ["string", "number"],
             blockOptions: {
-                color: "#ed7477",
+                color: "#d67b18",
                 callMethodLabel: false,
-                line: "云变量" 
+                line: "云变量"
             }
-        },
-        {
+        }, {
             key: "set",
             label: "设置",
             params: [
                 {
-                    key: "varName",
+                    key: "name",
                     labelAfter: "的值",
                     valueType: "string",
                     defaultValue: "云变量"
-                },
-                {
+                }, {
                     key: "value",
                     label: "为",
                     valueType: "string",
@@ -90,44 +191,54 @@ const types = {
                 }
             ],
             blockOptions: {
-                color: "#ed7477",
+                color: "#d67b18",
                 callMethodLabel: false,
                 space: 40
             }
-        },
-        {
-            key: "userName",
-            label: "用户昵称",
+        }, {
+            key: "isUserLogined",
+            label: "用户已登录",
             params: [],
-            valueType: "string",
+            valueType: "boolean",
             blockOptions: {
-                color: "#eb7a52",
+                color: "#db6656",
                 callMethodLabel: false,
-                line: "用户信息" 
+                line: "用户信息"
             }
-        },
-        {
-            key: "userID",
-            label: "用户编号",
-            params: [],
-            valueType: "number",
+        }, {
+            key: "userInfo",
+            params: [
+                {
+                    key: "type",
+                    label: "用户",
+                    valueType: "string",
+                    dropdown: [
+                        { label: "昵称", value: "nickname" },
+                        { label: "ID", value: "id" },
+                        { label: "头像", value: "avatar_url" },
+                        { label: "性别", value: "sex" },
+                        { label: "个性签名", value: "description" },
+                        { label: "QQ 号", value: "qq" },
+                        { label: "生日", value: "birthday" }
+                    ]
+                }
+            ],
+            valueType: [ "string", "number" ],
             blockOptions: {
-                color: "#eb7a52",
+                color: "#db6656",
                 callMethodLabel: false,
             }
-        },
-        {
+        }, {
             key: "onlineUsersNumber",
             label: "在线用户数",
             params: [],
             valueType: "number",
             blockOptions: {
-                color: "#eb7a52",
+                color: "#db6656",
                 callMethodLabel: false,
                 space: 40
             }
-        },
-        {
+        }, {
             key: "append",
             label: "添加",
             params: [
@@ -135,14 +246,12 @@ const types = {
                     key: "value",
                     valueType: "string",
                     defaultValue: "值"
-                },
-                {
-                    key: "listName",
+                }, {
+                    key: "name",
                     label: "到",
                     valueType: "string",
                     defaultValue: "云列表"
-                },
-                {
+                }, {
                     key: "position",
                     valueType: "number",
                     dropdown: [
@@ -152,12 +261,11 @@ const types = {
                 }
             ],
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false,
-                line: "云列表" 
+                line: "云列表"
             }
-        },
-        {
+        }, {
             key: "insert",
             label: "插入",
             params: [
@@ -165,29 +273,25 @@ const types = {
                     key: "value",
                     valueType: "string",
                     defaultValue: "值"
-                },
-                {
-                    key: "listName",
+                }, {
+                    key: "name",
                     label: "到",
                     valueType: "string",
                     defaultValue: "云列表"
-                },
-                {
-                    key: "countingMode",
+                }, {
+                    key: "indexingMode",
                     valueType: "number",
                     dropdown: [
                         { label: "正数", value: 0 },
                         { label: "倒数", value: 1 }
                     ]
-                },
-                {
+                }, {
                     key: "index",
                     label: "第",
                     labelAfter: "项",
                     valueType: "number",
                     defaultValue: 1
-                },
-                {
+                }, {
                     key: "position",
                     valueType: "number",
                     dropdown: [
@@ -197,28 +301,25 @@ const types = {
                 }
             ],
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false
             }
-        },
-        {
+        }, {
             key: "delete",
             label: "删除",
             params: [
                 {
-                    key: "listName",
+                    key: "name",
                     valueType: "string",
                     defaultValue: "云列表"
-                },
-                {
-                    key: "countingMode",
+                }, {
+                    key: "indexingMode",
                     valueType: "number",
                     dropdown: [
                         { label: "正数", value: 0 },
                         { label: "倒数", value: 1 }
                     ]
-                },
-                {
+                }, {
                     key: "index",
                     label: "第",
                     labelAfter: "项",
@@ -227,51 +328,46 @@ const types = {
                 }
             ],
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false
             }
-        },
-        {
+        }, {
             key: "deleteAll",
             label: "删除",
             params: [
                 {
-                    key: "listName",
+                    key: "name",
                     labelAfter: "所有项",
                     valueType: "string",
                     defaultValue: "云列表"
                 }
             ],
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false
             }
-        },
-        {
+        }, {
             key: "replace",
             label: "替换",
             params: [
                 {
-                    key: "listName",
+                    key: "name",
                     valueType: "string",
                     defaultValue: "云列表"
-                },
-                {
-                    key: "countingMode",
+                }, {
+                    key: "indexingMode",
                     valueType: "number",
                     dropdown: [
                         { label: "正数", value: 0 },
                         { label: "倒数", value: 1 }
                     ]
-                },
-                {
+                }, {
                     key: "index",
                     label: "第",
                     labelAfter: "项",
                     valueType: "number",
                     defaultValue: 1
-                },
-                {
+                }, {
                     key: "value",
                     label: "为",
                     valueType: "string",
@@ -279,28 +375,25 @@ const types = {
                 }
             ],
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false,
                 space: 40
             }
-        },
-        {
+        }, {
             key: "listGet",
             params: [
                 {
-                    key: "listName",
+                    key: "name",
                     valueType: "string",
                     defaultValue: "云列表"
-                },
-                {
-                    key: "countingMode",
+                }, {
+                    key: "indexingMode",
                     valueType: "number",
                     dropdown: [
                         { label: "正数", value: 0 },
                         { label: "倒数", value: 1 }
                     ]
-                },
-                {
+                }, {
                     key: "index",
                     label: "第",
                     labelAfter: "项",
@@ -308,17 +401,16 @@ const types = {
                     defaultValue: 1
                 }
             ],
-            valueType: "string",
+            valueType: ["string", "number"],
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false
             }
-        },
-        {
+        }, {
             key: "listLength",
             params: [
                 {
-                    key: "listName",
+                    key: "name",
                     labelAfter: "的项数",
                     valueType: "string",
                     defaultValue: "云列表"
@@ -326,35 +418,31 @@ const types = {
             ],
             valueType: "number",
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false
             }
-        },
-        {
+        }, {
             key: "listFind",
             params: [
                 {
-                    key: "listName",
+                    key: "name",
                     labelAfter: "中",
                     valueType: "string",
                     defaultValue: "云列表"
-                },
-                {
+                }, {
                     key: "countingMode",
                     valueType: "number",
                     dropdown: [
                         { label: "正数", value: 0 },
                         { label: "倒数", value: 1 }
                     ]
-                },
-                {
+                }, {
                     key: "count",
                     label: "第",
                     labelAfter: "个",
                     valueType: "number",
                     defaultValue: 1
-                },
-                {
+                }, {
                     key: "value",
                     labelAfter: "的位置",
                     valueType: "string",
@@ -364,20 +452,18 @@ const types = {
             ],
             valueType: "number",
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false
             }
-        },
-        {
+        }, {
             key: "listContain",
             params: [
                 {
-                    key: "listName",
+                    key: "name",
                     labelAfter: "中",
                     valueType: "string",
                     defaultValue: "云列表"
-                },
-                {
+                }, {
                     key: "value",
                     label: "包含",
                     valueType: "string",
@@ -387,771 +473,1357 @@ const types = {
             ],
             valueType: "boolean",
             blockOptions: {
-                color: "#e18528",
+                color: "#c7c100",
                 callMethodLabel: false
             }
         }
     ],
     events: [
         {
-            key: "onInit",
-            label: "连接完成",
-            params: []
-        },
-        {
-            key: "onError",
+            key: "onConnectionError",
             label: "连接出现错误",
-            params: []
-        },
-        {
-            key: "onVarInit",
+            params: [
+                {
+                    key: "message",
+                    label: "信息",
+                    valueType: "string"
+                }
+            ]
+        }, {
+            key: "onDataInit",
             label: "云数据初始化",
             params: [
                 {
                     key: "name",
                     label: "名称",
                     valueType: "string"
-                },
-                {
+                }, {
                     key: "value",
                     label: "值",
-                    valueType: "string"
-                },
-                {
+                    valueType: ["string", "number"]
+                }, {
                     key: "type",
                     label: "类型",
-                    valueType: "string"
-                },
-                {
+                    valueType: "number"
+                }, {
                     key: "cvid",
                     label: "CVID",
                     valueType: "string"
                 }
             ]
-        },
-        {
-            key: "onCloudListInit",
-            label: "云列表初始化完成",
-            params: []
-        },
-        {
-            key: "onListInitFailed",
-            label: "云列表初始化失败",
-            params: []
-        },
-        {
+        }, {
             key: "onPublicVarChange",
             label: "公有云变量改变",
             params: [
                 {
-                    key: "varName",
-                    label: "变量名",
+                    key: "source",
+                    label: "源",
+                    valueType: "number"
+                }, {
+                    key: "name",
+                    label: "名称",
                     valueType: "string"
-                },
-                {
-                    key: "varValue",
-                    label: "变量值",
-                    valueType: "string"
+                }, {
+                    key: "originalValue",
+                    label: "原值",
+                    valueType: ["string", "number"]
+                }, {
+                    key: "newValue",
+                    label: "新值",
+                    valueType: ["string", "number"]
                 }
             ]
-        },
-        {
+        }, {
             key: "onOnlineUsersNumberChange",
             label: "在线用户数改变",
             params: []
-        },
-        {
-            key: "onUserInformationObtained",
-            label: "用户信息获取完成",
-            params: []
+        }, {
+            key: "onListInsert",
+            label: "云列表插入",
+            params: [
+                {
+                    key: "source",
+                    label: "源",
+                    valueType: "number"
+                }, {
+                    key: "name",
+                    label: "名称",
+                    valueType: "string"
+                }, {
+                    key: "index",
+                    label: "索引",
+                    valueType: "number"
+                }, {
+                    key: "value",
+                    label: "项",
+                    valueType: ["string", "number"]
+                }
+            ]
+        }, {
+            key: "onListDelete",
+            label: "云列表删除",
+            params: [
+                {
+                    key: "source",
+                    label: "源",
+                    valueType: "number"
+                }, {
+                    key: "name",
+                    label: "名称",
+                    valueType: "string"
+                }, {
+                    key: "index",
+                    label: "索引",
+                    valueType: "number"
+                }, {
+                    key: "value",
+                    label: "项",
+                    valueType: ["string", "number"]
+                }
+            ]
+        }, {
+            key: "onListDeleteAll",
+            label: "云列删除所有",
+            params: [
+                {
+                    key: "source",
+                    label: "源",
+                    valueType: "number"
+                }, {
+                    key: "name",
+                    label: "名称",
+                    valueType: "string"
+                }, {
+                    key: "originalList",
+                    label: "原列表",
+                    valueType: "array"
+                }
+            ]
+        }, {
+            key: "onListReplace",
+            label: "云列替换",
+            params: [
+                {
+                    key: "source",
+                    label: "源",
+                    valueType: "number"
+                }, {
+                    key: "name",
+                    label: "名称",
+                    valueType: "string"
+                }, {
+                    key: "index",
+                    label: "索引",
+                    valueType: "number"
+                }, {
+                    key: "originalValue",
+                    label: "原项",
+                    valueType: ["string", "number"]
+                }, {
+                    key: "newValue",
+                    label: "新项",
+                    valueType: ["string", "number"]
+                }
+            ]
+        }, {
+            key: "onListReplaceAll",
+            label: "云列替换所有",
+            params: [
+                {
+                    key: "source",
+                    label: "源",
+                    valueType: "number"
+                }, {
+                    key: "name",
+                    label: "名称",
+                    valueType: "string"
+                }, {
+                    key: "originalValue",
+                    label: "原列表",
+                    valueType: "array"
+                }, {
+                    key: "newValue",
+                    label: "新列表",
+                    valueType: "array"
+                }
+            ]
         }
     ]
 }
 
-var workID = 0
-var connection = null
-var ping = null
-var vars = null
-var onlineUsersNumber = 0
+const HTTP = {
+    get: async (url, withCredentials=false) => {
+        try {
+            return (await axios({
+                method: "get",
+                url: url,
+                withCredentials: withCredentials
+            })).data
+        } catch (error) {
+            const { response } = error
+            if (response) {
+                const { data } = response
+                throw new Error(data.error_message)
+            } else if (error.request) {
+                throw new Error("请已发送，但未收到响应")
+            } else {
+                throw new Error("请求发送失败")
+            }
+        }
+    }
+}
 
-var publicVarUpdates = {}
-var privateVarLastUpdateTime = 0
-var privateVarUpdates = {}
-var listUpdates = {}
+function Task(widget, name, func, maxRetryTimes=widget.maxRetryTimes, hint=false) {
+    return async () => {
+        var retryTimes = 0
+        if (hint) widget.log(`正在 ${name} ……`)
+        for (;;) {
+            try {
+                value = await func()
+                retryTimes = 0
+                return value
+            } catch (error) {
+                var message = `${name} 时出错：${error.message}`
+                if (retryTimes >= maxRetryTimes) {
+                    if (maxRetryTimes != 0) {
+                        error.message = message
+                        widget.error(error)
+                        widget.error(new Error("重试次数已达上限，不再重试"))
+                    }
+                    throw error
+                } else {
+                    widget.warn(message)
+                    widget.warn(`正在进行第 ${++retryTimes} 次重试……`)
+                }
+            }
+        }
+    }
+}
 
-var userID = 0
-var userName = "获取中……"
+function equal(a, b) {
+    if (typeof a !== typeof b) {
+        return false;
+    }
+    if (a === null || typeof a === "string" || typeof a === "number") {
+        return a === b;
+    }
+    if (Array.isArray(a)) {
+        if (a.length !== b.length) {
+            return false;
+        }
+        for (let i = 0; i < a.length; i++) {
+            if (!equal(a[i], b[i])) {
+                return false;
+            }
+        }
+        return true;
+    } else if (typeof a === "object" && a !== null) {
+        if (Object.keys(a).length !== Object.keys(b).length) {
+            return false;
+        }
+        for (let key in a) {
+            if (!b.hasOwnProperty(key) || !equal(a[key], b[key])) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return a === b;
+    }
+}
+
+function KittenCloud(widget, workID) {
+
+    var getMessageResolve, getMessageReject
+
+    this.widget = widget
+    this.workID = workID
+    this.maxRetryTimes = widget.maxRetryTimes
+    this.pingBack = []
+
+    this.privateVar = new PrivateVarManager(widget, this)
+    this.publicVar = new PublicVarManager(widget, this)
+    this.list = new ListManager(widget, this, this.list, "update_lists")
+
+    this.hasList = null
+    this.listsInfo = null
+
+    this.init = async () => {
+        await this.connect()
+        ;(async () => {
+            for (;;) {
+                try {
+                    await this.handleMessage()
+                } catch (error) {
+                    this.close()
+                    const { message } = error
+                    if (this.widget.autoReconnect) {
+                        console.error(error)
+                        this.widget.warn(`连接异常：${message}`)
+                        this.widget.warn("即将自动重连")
+                        await this.connect()
+                    } else {
+                        this.widget.connection = null
+                        error.message = `连接出现错误：${message}`
+                        this.widget.error(error)
+                        this.widget.emit("onConnectionError", message)
+                        break
+                    }
+                }
+            }
+        })()
+    }
+
+    this.connect = Task(widget, `连接到 ${this.workID}`, () => {
+        this.establishWSConnection()
+        this.connection.onmessage = (message) => {
+            getMessageResolve(message)
+        }
+        this.connection.onerror = (message) => {
+            getMessageReject(new Error(message))
+        }
+        this.connection.onclose = () => {
+            getMessageReject(new Error("连接异常关闭"))
+        }
+        return new Promise((resolve, reject) => {
+            var timeout = setTimeout(() => {
+                getMessageReject(new Error("时间超出"))
+            }, 60000)
+            function listInit() {
+                this.listsInfo.forEach(info => {
+                    this.list.datas[info.cvid].id = info.id
+                })
+            }
+            function loadListFailed() {
+                var error = this.listsInfo
+                error.message = `云列表加载失败：${error.message}`
+                widget.error(error)
+            }
+            ;(async () => {
+                try {
+                    var loading = true
+                    while (loading) {
+                        await this.handleMessage(() => {
+                            clearTimeout(timeout)
+                            if (this.hasList) {
+                                if (this.listsInfo != null) {
+                                    if (this.listsInfo instanceof Error) {
+                                        loadListFailed()
+                                    } else {
+                                        listInit()
+                                    }
+                                    resolve()
+                                }
+                            } else {
+                                resolve()
+                            }
+                            loading = false
+                        })
+                    }
+                } catch (error) {
+                    clearTimeout(timeout)
+                    this.close()
+                    reject(error)
+                }
+            })()
+            if (this.hasList != false && this.listsInfo == null) {
+                (async () => {
+                    try {
+                        await Task(widget, "加载云列表", async () => {
+                            var info = (await Task(widget, "获取作品数据", async () => {
+                                return HTTP.get(`https://api-creation.codemao.cn/kitten/r2/work/player/load/${this.workID}`)
+                            })())
+                            var work = (await Task(widget, "获取作品编译文件", async () => {
+                                return HTTP.get(info.source_urls[0])
+                            })())
+                            this.listsInfo = []
+                            Object.values(work.cloud_variables).forEach(info => {
+                                if (info.type == "public_list") {
+                                    this.listsInfo.push(info)
+                                }
+                            })
+                            if (this.hasList) {
+                                listInit()
+                                resolve()
+                            }
+                        }, 0)()
+                    } catch (error) {
+                        this.listsInfo = error
+                        if (this.hasList == true) {
+                            loadListFailed()
+                        }
+                        if (this.hasList != null) {
+                            resolve()
+                        }
+                    }
+                })()
+            }
+        })
+    }, widget.maxRetryTimes, true)
+
+    this.establishWSConnection = Task(widget, `建立 ${"Web"}${"Socket"} 连接`, () => {
+        var WS = new Function(`return ${"Web"}${"Socket"}`)()
+        var a = "socketcv"
+        var b = "codemao"
+        var c = "cn"
+        var port = "9096"
+        this.connection = new WS(`wss://${a}.${b}.${c}:${port}/cloudstorage/?session_id=${workID}&authorization_type=1&stag=1&EIO=3&transport=websocket`)
+    })
+
+    this.getMessage = () => {
+        return new Promise((resolve, reject) => {
+            getMessageResolve = resolve
+            getMessageReject = reject
+        })
+    }
+
+    this.handleMessage = async (resolve) => {
+        var message = await this.getMessage()
+        var { data } = message
+        if (data.startsWith("0")) {
+            data = JSON.parse(data.substring(1))
+            this.handleFirst(data)
+        } else if (data == "1") {
+            throw new Error("连接异常断开：远程保活超时")
+        } else if (data == "3") {
+            this.pingBack.push(Date.now())
+        } else if (data == "41") {
+            throw new Error("连接异常断开")
+        } else if (data == "40") {
+            this.join()
+        } else if (data.startsWith("42")) {
+            data = JSON.parse(data.substring(2))
+            message = data[0]
+            data = data[1]
+            switch (message) {
+                case "connect_done":
+                    this.handleJoinDone(JSON.parse(data))
+                    break
+                case "list_variables_done":
+                    this.handleListDatasDone(JSON.parse(data), resolve)
+                    break
+                case "online_users_change":
+                    this.onlineUsersNumber = JSON.parse(data).total
+                    widget.emit("onOnlineUsersNumberChange")
+                    break
+                case "update_private_vars_done":
+                    if (this.hasList != null) {
+                        this.privateVar.onCloudUpdates(JSON.parse(data))
+                    }
+                    break
+                case "update_vars_done":
+                    if (this.hasList != null) {
+                        this.publicVar.onCloudUpdates(data)
+                    }
+                    break
+                case "update_lists_done":
+                    if (this.hasList != null) {
+                        this.list.onCloudUpdates(data)
+                    }
+                    break
+            }
+        }
+    }
+
+    this.handleFirst = (data) => {
+        this.pingTimeout = data.pingTimeout
+        this.ping = setInterval(() => {
+            this.connection.send("2")
+            setTimeout(() => {
+                if (this.pingBack.length > 0) {
+                    this.pingBack.shift()
+                } else {
+                    getMessageReject(new Error("本地保活超时"))
+                }
+            }, data.pingTimeout)
+        }, data.pingInterval)
+    }
+
+    this.join = () => {
+        this.connection.send(`42["join","${this.workID}"]`)
+    }
+
+    this.handleJoinDone = (data) => {
+        switch (data.connect_state) {
+            case 1:
+                this.listDatas()
+                break
+            case 2:
+                throw new Error("可能因为在线用户数已达上限")
+            default:
+                throw new Error(data)
+        }
+    }
+
+    this.listDatas = () => {
+        this.connection.send(`42["list_variables",{}]`)
+    }
+
+    this.handleListDatasDone = (data, resolve) => {
+        if (this.hasList == null) {
+            this.hasList = false
+            data.forEach(info => {
+                switch (info.type) {
+                    case PRIVATE_VAR:
+                        this.privateVar.add(info)
+                        break
+                    case PUBLIC_VAR:
+                        this.publicVar.add(info)
+                        break
+                    case LIST:
+                        this.hasList = true
+                        this.list.add(info)
+                        break
+                }
+                widget.emit("onDataInit", info.name, info.value, info.type, info.cvid)
+            })
+        } else {
+            var publicUpdates = {},
+            listUpdates = {}
+            data.forEach(info => {
+                switch (info.type) {
+                    case PUBLIC_VAR:
+                        publicUpdates[info.cvid] = [{
+                            value: info.value
+                        }]
+                        break
+                    case LIST:
+                        listUpdates[info.cvid] = [{
+                            action: "replace",
+                            nth: "all",
+                            value: info.value
+                        }]
+                        break
+                }
+            })
+            this.publicVar.cloudUpdates(publicUpdates)
+            this.list.cloudUpdates(listUpdates)
+        }
+        if (resolve) resolve()
+    }
+
+    this.close = () => {
+        clearInterval(this.ping)
+        if (this.connection) {
+            this.connection.onclose = null
+            try {
+                this.connection.send("41")
+                this.connection.close()
+            } catch (error) {}
+        }
+    }
+
+    return this
+}
+
+class DataManager {
+
+    datas = {}
+    dataList = []
+    lastUploadTime = 0
+
+    isUpdating = false
+    localUpdates = []
+
+    toBeUploadeds = null
+    uploading = []
+
+    constructor(widget, cloud, intervalTime) {
+        this.widget = widget
+        this.cloud = cloud
+        this.intervalTime = intervalTime
+    }
+
+    add = (data) => {
+        this.datas[data.cvid] = data
+        this.datas[data.name] = data
+        this.dataList.push(data)
+    }
+
+    getData = (data) => {
+        return this.datas[data.name || data.cvid]
+    }
+
+    get = (name) => {
+        return this.datas[name].value
+    }
+
+    updates = (source, updatesData) => {
+        Object.keys(updatesData).forEach(key => {
+            this.dataUpdates(source, this.datas[key], updatesData[key])
+        })
+    }
+
+    dataUpdates = (source, data, updatesData) => {
+        updatesData.forEach(updateData => {
+            this.update(source, data, updateData)
+        })
+    }
+
+    localUpdate = (updateData, data=this.getData(updateData)) => {
+        if (this.isUpdating) {
+            this.localUpdates.push(updateData)
+        } else if (this.effective(updateData, data)) {
+            if (!this.toBeUploadeds) {
+                this.toBeUploadeds = {}
+                setTimeout(() => {
+                    this.lastUploadTime = Date.now()
+                    this.cloud.connection.send(`42${JSON.stringify([
+                        this.updateMessage,
+                        this.getUploadsData()
+                    ])}`)
+                    this.uploading.push(this.toBeUploadeds)
+                    this.toBeUploadeds = null
+                }, Math.max(0, this.lastUploadTime + this.intervalTime - Date.now()));
+            }
+            if (!this.toBeUploadeds[data.cvid]) {
+                this.toBeUploadeds[data.cvid] = []
+            }
+            this.toBeUploadeds[data.cvid].push({
+                update: this.getSimplifyUpdateData(updateData),
+                backup: this.getBackupData(updateData, data)
+            })
+            if (this.localPreUpdate) {
+                this.update(LOCAL, data, updateData)
+            }
+        }
+    }
+
+    withPauseLocalUpdate = (func) => {
+        this.isUpdating = true
+        func()
+        this.isUpdating = false
+        var localUpdateData
+        while (localUpdateData = this.localUpdates.shift()) {
+            this.localUpdate(localUpdateData)
+        }
+    }
+
+    cloudUpdates = (updatesData) => {
+        this.withPauseLocalUpdate(() => {
+            var firstUploadingUpdatesData = this.getFirstUploadingUpdatesData()
+            if (equal(updatesData, firstUploadingUpdatesData)) {
+                this.uploading.shift()
+                if (!this.localPreUpdate) {
+                    this.updates(LOCAL, updatesData)
+                }
+            } else {
+                if (this.localPreUpdate) {
+                    this.undoAll()
+                    this.updates(CLOUD, updatesData)
+                    this.redoAll()
+                } else {
+                    this.updates(CLOUD, updatesData)
+                }
+            }
+        })
+    }
+
+    cloudDatasUpdatesFailed = () => {
+        if (this.localPreUpdate) {
+            this.withPauseLocalUpdate(() => {
+                this.dataList.forEach(data => {
+                    this.undo(data, data.uploading.shift())
+                })
+            })
+        } else {
+            this.dataList.forEach(data => {
+                data.uploading.shift()
+            })
+        }
+    }
+
+    undoAll = () => {
+        for (let i = this.uploading.length - 1; i >= 0; i--) {
+            var uploading =  this.uploading[i]
+            Object.keys(uploading).forEach(key => {
+                this.undo(this.datas[key], uploading[key])
+            })
+        }
+    }
+
+    undo = (data, uploading) => {
+        for (let i = uploading.length - 1; i >= 0; i--) {
+            this.update(UNDO, data, uploading[i].backup)
+        }
+    }
+
+    redoAll = () => {
+        this.uploading.forEach(uploading => {
+            Object.keys(uploading).forEach(key => {
+                this.redo(this.datas[key], uploading[key])
+            })
+        })
+    }
+
+    redo = (data, uploading) => {
+        uploading.forEach(uploading => {
+            uploading.backup = getBackupData(uploading.update)
+            this.update(REDO, data, uploading.update)
+        })
+    }
+}
+
+class VarManager extends DataManager {
+
+    constructor(widget, cloud, intervalTime) {
+        super(widget, cloud, intervalTime)
+    }
+
+    effective = (updateData, data=this.getData(updateData)) => {
+        return data.value != updateData.value
+    }
+
+    getSimplifyUpdateData = (updateData) => {
+        return {
+            value: updateData.value
+        }
+    }
+
+    getBackupData = (updateData, data=this.getData(updateData)) => {
+        return {
+            value: data.value
+        }
+    }
+
+    getFirstUploadingUpdatesData = () => {
+        var uploadingUpdatesData = {}
+        var uploading = this.uploading[0]
+        if (uploading) {
+            Object.keys(uploading).forEach(key => {
+                var updatesData = []
+                uploading[key].forEach(uploadingData => {
+                    updatesData.push(uploadingData.update)
+                })
+                uploadingUpdatesData[key] = updatesData
+            })
+        }
+        return uploadingUpdatesData
+    }
+
+    getUploadsData = () => {
+        var uploadsData = []
+        Object.keys(this.toBeUploadeds).forEach(key => {
+            var dataUploadsData = this.toBeUploadeds[key]
+            var dataUploadData = this.mergeDataUploadsData(dataUploadsData)
+            this.toBeUploadeds[key] = [dataUploadData]
+            uploadsData.push(this.getDataUploadData(this.datas[key], dataUploadData))
+        })
+        return uploadsData
+    }
+
+    mergeDataUploadsData = (dataUploadsData) => {
+        return {
+            update: dataUploadsData.slice(-1)[0].update,
+            backup: dataUploadsData[0].backup
+        }
+    }
+}
+
+class PrivateVarManager extends VarManager {
+
+    constructor(widget, cloud) {
+        super(widget, cloud, 1500)
+        this.localPreUpdate = widget.privateVarLocalPreUpdate
+        this.updateMessage = "update_private_vars"
+    }
+
+    update = (source, data, updateData) => {
+        if (this.effective(updateData, data)) {
+            data.value = updateData.value
+        }
+    }
+
+    getDataUploadData = (data, uploadData) => {
+        var value = uploadData.update.value
+        return {
+            cvid: data.cvid,
+            value: value,
+            param_type: typeof value
+        }
+    }
+
+    onCloudUpdates = (data) => {
+        if (data.code == 1 && data.msg == "ok") {
+            this.dataList.forEach(data => {
+                if (!this.localPreUpdate) {
+                    data.uploading[0].forEach(uploadingData => {
+                        this.update(LOCAL, data, uploadingData.update)
+                    })
+                }
+                data.uploading.shift()
+            })
+        } else {
+            this.cloudDatasUpdatesFailed()
+            this.widget.error(new Error(`私有云变量更新失败：${JSON.stringify(data)}`))
+        }
+    }
+}
+
+class PublicVarManager extends VarManager  {
+
+    constructor(widget, cloud) {
+        super(widget, cloud, 0)
+        this.localPreUpdate = widget.publicVarLocalPreUpdate
+        this.updateMessage = "update_vars"
+    }
+
+    update = (source, data, updateData) => {
+        if (this.effective(updateData, data)) {
+            var originalValue = data.value
+            data.value = updateData.value
+            widget.emit("onPublicVarChange", source, data.name, originalValue, data.value)
+        }
+    }
+
+    getDataUploadData = (data, uploadData) => {
+        var value = uploadData.update.value
+        return {
+            cvid: data.cvid,
+            value: value,
+            param_type: typeof value,
+            action: "set"
+        }
+    }
+
+    onCloudUpdates = (updatesData) => {
+        if (updatesData == "fail") {
+            this.cloudDatasUpdatesFailed()
+            this.widget.error(new Error(`公有云变量更新失败：${JSON.stringify(data)}`))
+        } else {
+            var cloudUpdatesData = {}
+            updatesData.forEach(updateData => {
+                if (!cloudUpdatesData[updateData.cvid]) {
+                    cloudUpdatesData[updateData.cvid] = []
+                }
+                cloudUpdatesData[updateData.cvid].push(this.getSimplifyUpdateData(updateData))
+            })
+            this.cloudUpdates(cloudUpdatesData)
+        }
+    }
+}
+
+class ListManager extends DataManager {
+
+    constructor(widget, cloud) {
+        super(widget, cloud, 0)
+        this.localPreUpdate = widget.listLocalPreUpdate
+        // if (this.localPreUpdate) {
+        //     var error = new Error("暂不支持云列表本地预更新")
+        //     widget.error(error)
+        //     throw error
+        // }
+        this.updateMessage = "update_lists"
+    }
+
+    effective = (updateData, data=this.getData(updateData)) => {
+        return !("nth" in updateData && typeof a == "number" && updateData.nth <= 0)
+    }
+
+    update = (source, data, updateData) => {
+        if (this.effective(updateData, data)) {
+            switch (updateData.action) {
+                case "append":
+                    data.value.push(updateData.value)
+                    widget.emit("onListInsert", source, data.name, 0, updateData.value)
+                    break
+                case "unshift":
+                    data.value.unshift(updateData.value)
+                    widget.emit("onListInsert", source, data.name, data.value.length - 1, updateData.value)
+                    break
+                case "insert":
+                    data.value.splice(updateData.nth - 1, 0, updateData.value)
+                    widget.emit("onListInsert", source, data.name, updateData.nth, updateData.value)
+                    break
+                case "delete":
+                    switch (updateInfo.nth) {
+                        case "last":
+                            var originalValue = data.value.slice(-1)[0]
+                            data.value.splice(-1, 1)
+                            widget.emit("onListDelete", source, data.name, data.value.length, originalValue)
+                            break
+                        case "all":
+                            var originalList = data.value
+                            data.value = []
+                            widget.emit("onListDeleteAll", source, data.name, originalList.slice())
+                            break
+                        default:
+                            var originalValue = data.value[updateInfo.nth - 1]
+                            data.value.splice(updateInfo.nth - 1, 1)
+                            widget.emit("onListDelete", source, data.name, updateData.nth, originalValue)
+                            break
+                    }
+                    break
+                case "replace":
+                    switch (updateInfo.nth) {
+                        case "last":
+                            var originalValue = data.value.slice(-1)[0]
+                            data.value.splice(-1, 1, updateInfo.value)
+                            widget.emit("onListReplace", source, data.name, data.value.length, originalValue, updateData.value)
+                            break
+                        case "all":
+                            var originalList = data.value
+                            data.value = updateData.value
+                            widget.emit("onListReplaceAll", source, data.name, originalList, data.value)
+                            break
+                        default:
+                            var originalValue = data.value.slice(updateData.nth - 1)[0]
+                            data.value.splice(updateData.nth - 1, 1, updateInfo.value)
+                            widget.emit("onListReplace", source, data.name, updateData.nth, originalValue.slice(), updateData.value.slice())
+                            break
+                    }
+                    break
+            }
+        }
+    }
+
+    getSimplifyUpdateData = (updateData) => {
+        var simplifyUpdateData = {}
+        simplifyUpdateData.action = updateData.action
+        if ("value" in updateData) {
+            simplifyUpdateData.value = updateData.value
+        }
+        if ("nth" in updateData && updateData.nth != null) {
+            simplifyUpdateData.nth = updateData.nth
+        }
+        return simplifyUpdateData
+    }
+
+    getBackupData = (updateData, data=this.getData(updateData)) => {
+        switch (updateData.action) {
+            case "append":
+                return {
+                    action: "delete",
+                    nth: "last"
+                }
+            case "unshift":
+                return {
+                    action: "delete",
+                    nth: 1
+                }
+            case "insert":
+                return {
+                    action: "delete",
+                    nth: updateData.nth + 1
+                }
+            case "delete":
+                switch (updateInfo.nth) {
+                    case "last":
+                        return {
+                            action: "append",
+                            value: data.value.slice(-1)[0]
+                        }
+                    case "all":
+                        return {
+                            action: "replace",
+                            nth: "all",
+                            value: data.value.slice()
+                        }
+                    default:
+                        if (updateData.nth == 1) {
+                            return {
+                                action: "unshift",
+                                value: data.value[0]
+                            }
+                        } else {
+                            return {
+                                action: "insert",
+                                nth: updateData.nth - 1,
+                                value: data.value[updateData.nth - 1]
+                            }
+                        }
+                }
+            case "replace":
+                switch (updateInfo.nth) {
+                    case "last":
+                        return {
+                            action: "replace",
+                            nth: "last",
+                            value: data.value.slice(-1)[0]
+                        }
+                    case "all":
+                        return {
+                            action: "replace",
+                            nth: "all",
+                            value: data.value.slice()
+                        }
+                    default:
+                        return {
+                            action: "replace",
+                            nth: updateData.nth,
+                            value: data.value[updateData.nth - 1]
+                        }
+                }
+        }
+    }
+
+    getFirstUploadingUpdatesData = () => {
+        var uploadingUpdatesData = {}
+        var uploading = this.uploading[0]
+        Object.keys(uploading).forEach(key => {
+            uploadingUpdatesData[key] = []
+            uploading[key].forEach(uploadData => {
+                uploadingUpdatesData[key].push(uploadData.update)
+            })
+        })
+        return uploadingUpdatesData
+    }
+
+    getUploadsData = () => {
+        var uploadsData = {}
+        Object.keys(this.toBeUploadeds).forEach(key => {
+            uploadsData[key] = []
+            this.toBeUploadeds[key].forEach(uploadData => {
+                uploadsData[key].push(uploadData.update)
+            })
+        })
+        return uploadsData
+    }
+
+    onCloudUpdates = (updatesData) => {
+        Object.values(updatesData).forEach(dataUpdatesData => {
+            dataUpdatesData.forEach(update => {
+                if (update.nth == null) {
+                    delete update.nth
+                }
+            })
+        })
+        this.cloudUpdates(updatesData)
+    }
+}
+
+async function User(widget) {
+    try {
+        return await Task(widget, "加载用户信息", async () => {
+            return await HTTP.get("https://api.codemao.cn/tiger/v3/web/accounts/profile", true)
+        }, 0)()
+    } catch (error) {
+        widget.error(error)
+        return {
+            "id": 0,
+            "nickname": "未登录用户",
+            "avatar_url": "https://static.codemao.cn/coco/player/unstable/B1F3qc2Hj.image/svg+xml?hash=FlHXde3J3HLj1PtOWGgeN9fhcba3",
+            "sex": MALE,
+            "qq": "0",
+            "description": error.message,
+            "birthday": 0
+        }
+    }
+}
 
 class Widget extends InvisibleWidget {
 
     constructor(props) {
         super(props)
-
         this.autoReconnect = props.autoReconnect
-        this.cacheTime = props.cacheTime
-
-        this.loadUserInfo()
+        this.maxRetryTimes = props.maxRetryTimes
+        this.privateVarLocalPreUpdate = props.privateVarLocalPreUpdate
+        this.publicVarLocalPreUpdate = props.publicVarLocalPreUpdate
+        this.listLocalPreUpdate = props.listLocalPreUpdate
     }
 
-    loadUserInfo = () => {
-        const axios = require("axios")
-        axios({
-            method: "get",
-            url: "https://api.codemao.cn/tiger/v3/web/accounts/profile",
-            withCredentials: true
-        }).then((response) => {
-            const { data } = response
-            userID = data.id
-            userName = data.nickname
-            this.emit("onUserInformationObtained")
-        }).catch((error) => {
-            userName = "获取用户信息失败"
-            const { response } = error
-            if (response) {
-                const { data } = response
-                if (data.error_code == "E_0") {
-                    userName = "未登录用户"
-                    this.widgetWarn("用户未登录编程猫账号，无法使用源码云功能")
-                } else
-                    this.widgetError(`获取用户信息失败：${data.error_message}`)
-            } else if (error.request) {
-                this.widgetError("获取用户信息失败：请已发送，但未收到响应")
-            } else {
-                this.widgetError("获取用户信息失败：请求发送失败")
-            }
-            console.log(error.toJSON())
-            this.emit("onUserInformationObtained")
-        })
+    log = (message) => {
+        this.widgetLog(message)
+    }
+    warn = (message) => {
+        this.widgetWarn(message)
+    }
+    error = (error) => {
+        console.error(error)
+        this.widgetError(error.message)
     }
 
-    connect = (theWorkID) => {
-        if (workID != 0) {
+    connect = async (workID) => {
+        if (this.connection) {
             this.widgetWarn("上一个连接未断开")
             this.disconnect()
         }
-        workID = theWorkID
-        this.widgetLog(`正在连接到 ${workID}……`)
-        var V = new Function("return " + "Web" + "Socket") ()
-        var a = "socketcv"
-        var b = "codemao"
-        var c = "cn"
-        var port = "9096"
-        connection = new V(`wss://${a}.${b}.${c}:${port}/cloudstorage/?session_id=${workID}&authorization_type=1&stag=1&EIO=3&transport=websocket`);
-        connection.onmessage = (message) => {
-            var { data } = message
-            if (data == "1") {
-                if (this.autoReconnect) {
-                    this.widgetWarn("连接异常断开，即将自动重连")
-                    clearInterval(ping)
-                    workID = 0
-                    this.connect(theWorkID)
-                } else {
-                    this.widgetError("连接异常断开")
-                    this.emit("onError")
-                }
-            }
-            else if (data == "40") {
-                connection.send(`42["join","${workID}"]`)
-            } else if (data.startsWith("42")) {
-                data = JSON.parse(data.substring(2))
-                message = data[0]
-                data = data[1]
-                switch (message) {
-                    case "connect_done":
-                        connection.send(`42["list_variables",{}]`)
-                        this.widgetLog("正在加载云变量……")
-                        break
-                    case "list_variables_done":
-                        data = JSON.parse(data)
-                        if (vars == null) {
-                            vars = {}
-                            var firstList = true
-                            data.forEach(varInfo => {
-                                vars[varInfo.name] = varInfo
-                                vars[varInfo.cvid] = varInfo
-                                if (varInfo.type == 2 && firstList) {
-                                    this.listInit()
-                                    firstList = false
-                                }
-                                this.emit("onVarInit", varInfo.name, varInfo.value, varInfo.type, varInfo.cvid)
-                            })
-                            this.widgetLog("连接初始化成功")
-                            data.forEach(varInfo => {
-                                this.emit("onVarChange", varInfo.name, varInfo.value)
-                            })
-                        } else {
-                            data.forEach(varInfo => {
-                                this.varUpdate(varInfo.name, varInfo.value)
-                            })
-                        }
-                        ping = setInterval(() => {
-                            connection.send("2")
-                        }, 25000)
-                        this.emit("onInit")
-                        break
-                    case "update_vars_done":
-                        if (data == "fail") {
-                            this.widgetError("公有云变量更新失败")
-                        }
-                        data.forEach(varValueInfo => {
-                            this.varUpdate(varValueInfo.cvid, varValueInfo.value)
-                        })
-                        break
-                    case "update_private_vars_done":
-                        data = JSON.parse(data)
-                        if (data.code == -1 && data.msg == "fail") {
-                            this.widgetError("私有云变量更新失败")
-                        }
-                    case "update_lists_done":
-                        Object.keys(data).forEach(cvid => {
-                            data[cvid].forEach(updateInfo => {
-                                var value = vars[cvid].value
-                                switch (updateInfo.action) {
-                                    case "append":
-                                        value.push(updateInfo.value)
-                                        break
-                                    case "unshift":
-                                        value.unshift(updateInfo.value)
-                                        break
-                                    case "insert":
-                                        value.splice(updateInfo.nth - 1, 0, updateInfo.value)
-                                        break
-                                    case "delete":
-                                        switch (updateInfo.nth) {
-                                            case "last":
-                                                value.splice(-1, 1)
-                                                break
-                                            case "all":
-                                                value.splice(0)
-                                                break
-                                            default:
-                                                value.splice(updateInfo.nth - 1, 1)
-                                                break
-                                        }
-                                        break
-                                    case "replace":
-                                        var index = updateInfo.nth
-                                        if (index == "last") {
-                                            index = -1
-                                        } else {
-                                            index--
-                                        }
-                                        value.splice(index, 1, updateInfo.value)
-                                        break
-                                }
-                            })
-                        })
-                        break
-                    case "online_users_change":
-                        data = JSON.parse(data)
-                        onlineUsersNumber = data.total
-                        this.emit("onOnlineUsersNumberChange")
-                        break
-                }
-            }
-        }
-        connection.onerror = (message) => {
-            this.widgetError("连接发生错误")
-            this.emit("onError")
-            this.clean()
-        }
-        connection.onclose = (message) => {
-            if (workID != 0) {
-                if (this.autoReconnect) {
-                    this.widgetWarn("连接异常断开，即将自动重连")
-                    clearInterval(ping)
-                    workID = 0
-                    this.connect(theWorkID)
-                } else {
-                    this.widgetError("连接异常断开")
-                    this.emit("onError")
-                    this.clean()
-                }
-            }
-        }
-    }
-
-    listInit = () => {
-        this.widgetLog(`正在初始化云列表……`)
-        const axios = require("axios")
-        axios({
-            method: "get",
-            url: `https://api-creation.codemao.cn/kitten/r2/work/player/load/${workID}`,
-        }).then((response) => {
-            const { data } = response
-            var codeURL = data.source_urls[0]
-            axios({
-                method: "get",
-                url: codeURL,
-            }).then((response) => {
-                const { data } = response
-                Object.values(data.cloud_variables).forEach(varInfo => {
-                    if (varInfo.type == "public_list") {
-                        vars[varInfo.cvid].id = varInfo.id
-                    }
-                })
-                this.widgetLog("云列表初始化成功")
-                this.emit("onCloudListInit")
-            }).catch((error) => {
-                const { response } = error
-                if (response) {
-                    this.widgetError(`初始化云列表失败：获取作品失败：${data.error_message}`)
-                } else if (error.request) {
-                    this.widgetError("初始化云列表失败：获取作品失败：请已发送，但未收到响应")
-                } else {
-                    this.widgetError("初始化云列表失败：获取作品失败：请求发送失败")
-                }
-                console.log(error.toJSON())
-                this.emit("onListInitFailed")
-            })
-        }).catch((error) => {
-            const { response } = error
-            if (response) {
-                this.widgetError(`初始化云列表失败：获取作品信息失败：${data.error_message}`)
-            } else if (error.request) {
-                this.widgetError("初始化云列表失败：获取作品信息失败：请已发送，但未收到响应")
-            } else {
-                this.widgetError("初始化云列表失败：获取作品信息失败：请求发送失败")
-            }
-            console.log(error.toJSON())
-            this.emit("onListInitFailed")
-        })
-    }
-
-    disconnect = () => {
-        clearInterval(ping)
-        connection.send("41")
-        connection.close()
-        this.widgetLog(`已断开与 ${workID} 的连接`)
-        this.clean()
+        this.connection = KittenCloud(this, workID)
+        await this.connection.init()
+        this.log(`成功 连接到 ${workID}`)
     }
 
     connectedWorkID = () => {
-        return workID
-    }
-
-    clean = () => {
-        workID = 0
-        connection = null
-        ping = null
-        vars = null
-        onlineUsersNumber = 0
-        publicVarUpdates = {}
-        privateVarLastUpdateTime = 0
-        privateVarUpdates = {}
-        listUpdates = {}
-    }
-
-    varUpdate = (varName, value)=> {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var varInfo = vars[varName]
-        if (typeof varInfo == "undefined") {
-            this.widgetError(`云变量 ${varName} 不存在`)
-            return
-        }
-        if (varInfo.value != value) {
-            varInfo.value = value
-            this.emit("onPublicVarChange", varInfo.name, value)
-        }
-    }
-
-    get = (varName) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var varInfo = vars[varName]
-        if (typeof varInfo == "undefined") {
-            this.widgetError(`云变量 ${varName} 不存在`)
-            return
-        }
-        if (varInfo.type == 2) {
-            this.widgetError(`不能通过云变量积木获取云列表 ${varName} 的值`)
-            return
-        }
-        return varInfo.value
-    }
-
-    set = (varName, value) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var varInfo = vars[varName]
-        if (typeof varInfo == "undefined") {
-            this.widgetError(`云变量 ${varName} 不存在`)
-            return
-        }
-        if (varInfo.type == 2) {
-            this.widgetError(`不能对云列表 ${varName} 进行赋值操作`)
-            return
-        }
-        value = this.value(value)
-        if (varInfo.value != value) {
-            varInfo.value = value
-        }
-
-        var updateInfo = {
-            cvid: varInfo.cvid,
-            value: value,
-            action: "set",
-            param_type: typeof value
-        }
-
-        if (varInfo.type == 0) {
-            if (Object.keys(privateVarUpdates).length == 0) {
-                setTimeout(() => {
-                    this.sendVarUpdateInfo(privateVarUpdates, "update_private_vars")
-                    privateVarUpdates = {}
-                    privateVarLastUpdateTime = Date.now()
-                }, Math.max(this.cacheTime, privateVarLastUpdateTime + 1500 - Date.now()))
-            }
-            privateVarUpdates[varInfo.cvid] = updateInfo
-        }
-        if (varInfo.type == 1) {
-            if (Object.keys(publicVarUpdates).length == 0) {
-                setTimeout(() => {
-                    this.sendVarUpdateInfo(publicVarUpdates, "update_vars")
-                    publicVarUpdates = {}
-                }, this.cacheTime)
-            }
-            publicVarUpdates[varInfo.cvid] = updateInfo
-            this.emit("onPublicVarChange", varInfo.name, value)
-        }
-    }
-
-    sendVarUpdateInfo = (dict, message) => {
-        connection.send(`42${
-            JSON.stringify([
-                message,
-                Object.values(dict)
-            ])
-        }`)
-    }
-
-    append = (value, listName, position) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
-        }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        value = this.value(value)
-        var action = ["append", "unshift"][position]
-        var updateInfo = {
-            id: listInfo.id,
-            cvid: listInfo.cvid,
-            value: value,
-            action: action,
-        }
-        if (Object.keys(listUpdates).length == 0) {
-            setTimeout(() => {
-                this.sendListUpdateInfo(listUpdates)
-                listUpdates = {}
-            }, this.cacheTime)
-        }
-        var updateInfoList = listUpdates[listInfo.cvid]
-        if (typeof updateInfoList == "undefined") {
-            updateInfoList = []
-            listUpdates[listInfo.cvid] = updateInfoList
-        }
-        updateInfoList.push(updateInfo)
-    }
-
-    insert = (value, listName, countingMode, index, position) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
-        }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        value = this.value(value)
-        index = this.index(listInfo.value, index, countingMode)
-        if (position == 1) {
-            index--
-        }
-        var updateInfo = {
-            id: listInfo.id,
-            cvid: listInfo.cvid,
-            nth: index,
-            value: value,
-            action: "insert",
-        }
-        if (Object.keys(listUpdates).length == 0) {
-            setTimeout(() => {
-                this.sendListUpdateInfo(listUpdates)
-                listUpdates = {}
-            }, this.cacheTime)
-        }
-        var updateInfoList = listUpdates[listInfo.cvid]
-        if (typeof updateInfoList == "undefined") {
-            updateInfoList = []
-            listUpdates[listInfo.cvid] = updateInfoList
-        }
-        updateInfoList.push(updateInfo)
-    }
-
-    delete = (listName, countingMode, index) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
-        }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        if (countingMode == 1 && index == 1) {
-            index = "last"
+        if (this.connection) {
+            return this.connection.workID
         } else {
-            index = this.index(listInfo.value, index, countingMode)
+            return 0
         }
-        var updateInfo = {
-            id: listInfo.id,
-            cvid: listInfo.cvid,
-            nth: index,
-            action: "delete",
-        }
-        if (Object.keys(listUpdates).length == 0) {
-            setTimeout(() => {
-                this.sendListUpdateInfo(listUpdates)
-                listUpdates = {}
-            }, this.cacheTime)
-        }
-        var updateInfoList = listUpdates[listInfo.cvid]
-        if (typeof updateInfoList == "undefined") {
-            updateInfoList = []
-            listUpdates[listInfo.cvid] = updateInfoList
-        }
-        updateInfoList.push(updateInfo)
     }
 
-    deleteAll = (listName) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
-        }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        var updateInfo = {
-            id: listInfo.id,
-            cvid: listInfo.cvid,
-            nth: "all",
-            action: "delete",
-        }
-        if (Object.keys(listUpdates).length == 0) {
-            setTimeout(() => {
-                this.sendListUpdateInfo(listUpdates)
-                listUpdates = {}
-            }, this.cacheTime)
-        }
-        var updateInfoList = listUpdates[listInfo.cvid]
-        if (typeof updateInfoList == "undefined") {
-            updateInfoList = []
-            listUpdates[listInfo.cvid] = updateInfoList
-        }
-        updateInfoList.push(updateInfo)
-    }
-
-    replace = (listName, countingMode, index, value) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
-        }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        value = this.value(value)
-        if (countingMode == 1 && index == 1) {
-            index = "last"
+    disconnect = () => {
+        if (this.connection) {
+            this.connection.close()
+            this.log(`已断开与 ${this.connection.workID} 的连接`)
+            this.connection = null
         } else {
-            index = this.index(listInfo.value, index, countingMode)
+            this.error(new Error("当前未连接作品"))
         }
-        var updateInfo = {
-            id: listInfo.id,
-            cvid: listInfo.cvid,
-            nth: index,
-            value: value,
-            action: "replace",
-        }
-        if (Object.keys(listUpdates).length == 0) {
-            setTimeout(() => {
-                this.sendListUpdateInfo(listUpdates)
-                listUpdates = {}
-            }, this.cacheTime)
-        }
-        var updateInfoList = listUpdates[listInfo.cvid]
-        if (typeof updateInfoList == "undefined") {
-            updateInfoList = []
-            listUpdates[listInfo.cvid] = updateInfoList
-        }
-        updateInfoList.push(updateInfo)
     }
 
-    listGet = (listName, countingMode, index) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
+    able = (dateType, operation) => {
+        if (this.connection == null) {
+            return false
         }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
+        if (dateType == READ || operation == VAR) {
+            return this.connection.hasList != null
         }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        var list = listInfo.value
-        index = this.index(list, index, countingMode) - 1
-        return list[index] || 0
+        return listsInfo != null && !(listsInfo instanceof Error)
     }
 
-    listLength = (listName) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
-        }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        return listInfo.value.length
+    dataType = (type) => {
+        return Number(type)
+    }
+    sourceType = (type) => {
+        return Number(type)
+    }
+    sexType = (type) => {
+        return Number(type)
     }
 
-    listFind = (listName, countingMode, count, value) => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
+    getVarManager = (name) => {
+        if (!this.connection) {
+            throw new Error("未连接到云")
         }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
+        if (name in this.connection.privateVar.datas) {
+            return this.connection.privateVar
+        } else if (name in this.connection.publicVar.datas) {
+            return this.connection.publicVar
+        } else if (name in this.connection.list.datas) {
+            throw new Error(`不存在云变量“${name}”，存在“${name}”是云列表而非云变量，不能对其进行云变量操作`)
+        } else {
+            throw new Error(`不存在云变量“${name}”`)
         }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
+    }
+
+    get = (name) => {
+        try {
+            return this.getVarManager(name).get(name)
+        } catch (error) {
+            error.message = `无法获取云变量“${name}”的值：${error.message}`
+            this.error(error)
+            return error.message
         }
-        var list = listInfo.value
-        var counting = 0
-        if (countingMode == 0) {
-            for (var i = 0; i < list.length; i++) {
-                if (list[i] == value) {
-                    if (++counting == count) {
-                        return i + 1
+    }
+
+    set = (name, value) => {
+        try {
+            var data = {
+                name: name,
+                value: this.value(value)
+            }
+            this.getVarManager(name).localUpdate(data)
+        } catch (error) {
+            error.message = `无法设置云变量“${name}”的值：${error.message}`
+            this.error(error)
+        }
+    }
+
+    getListManager = (name) => {
+        if (!this.connection) {
+            throw new Error("未连接到云")
+        }
+        if (name in this.connection.list.datas) {
+            return this.connection.list
+        } else if (name in this.connection.privateVar.datas || name in this.connection.publicVar.datas) {
+            throw new Error(`不存在云列表“${name}”，存在“${name}”是变量而非云列表，不能对其进行云列表操作`)
+        } else {
+            throw new Error(`不存在云列表“${name}”`)
+        }
+    }
+
+    append = (value, name, position) => {
+        try {
+            var manager = this.getListManager(name)
+            var data = {
+                name: name,
+                action: ["append", "unshift"][position],
+                value: this.value(value)
+            }
+            manager.localUpdate(data)
+        } catch (error) {
+            error.message = `无法更新云列表“${name}”：${error.message}`
+            this.error(error)
+        }
+    }
+
+    insert = (value, name, indexingMode, index, position) => {
+        if (index == 1 && indexingMode == 0 && position == 0) {
+            this.append(value, name, "unshift")
+        } else {
+            try {
+                var manager = this.getListManager(name)
+                index = this.index(manager.get(name), index, indexingMode)
+                if (position == 1) {
+                    index--
+                }
+                var data = {
+                    name: name,
+                    action: "insert",
+                    nth: index,
+                    value: value
+                }
+                manager.localUpdate(data)
+            } catch (error) {
+                error.message = `无法更新云列表“${name}”：${error.message}`
+                this.error(error)
+            }
+        }
+    }
+
+    delete = (name, indexingMode, index) => {
+        try {
+            var manager = this.getListManager(name)
+            if (indexingMode == 1 && index == -1) {
+                index = "last"
+            } else {
+                index = this.index(manager.get(name), index, indexingMode)
+            }
+            var data = {
+                name: name,
+                action: "delete",
+                nth: index
+            }
+            manager.localUpdate(data)
+        } catch (error) {
+            error.message = `无法更新云列表“${name}”：${error.message}`
+            this.error(error)
+        }
+    }
+
+    deleteAll = (name) => {
+        try {
+            var manager = this.getListManager(name)
+            var data = {
+                name: name,
+                action: "delete",
+                nth: "all"
+            }
+            manager.localUpdate(data)
+        } catch (error) {
+            error.message = `无法更新云列表“${name}”：${error.message}`
+            this.error(error)
+        }
+    }
+
+    replace = (name, indexingMode, index, value) => {
+        try {
+            var manager = this.getListManager(name)
+            if (indexingMode == 1 && index == -1) {
+                index = "last"
+            } else {
+                index = this.index(manager.get(name), index, indexingMode)
+            }
+            var data = {
+                name: name,
+                action: "replace",
+                nth: index,
+                value: value
+            }
+            manager.localUpdate(data)
+        } catch (error) {
+            error.message = `无法更新云列表“${name}”：${error.message}`
+            this.error(error)
+        }
+    }
+
+    listGet = (name, indexingMode, index) => {
+        try {
+            var manager = this.getListManager(name)
+            index = this.index(manager.get(name), index, indexingMode)
+            return manager.get(name)[index] || 0
+        } catch (error) {
+            error.message = `无法读取“${name}”：${error.message}`
+            this.error(error)
+            return 0
+        }
+    }
+
+    listLength = (name) => {
+        try {
+            var manager = this.getListManager(name)
+            return manager.get(name).length
+        } catch (error) {
+            error.message = `无法读取“${name}”：${error.message}`
+            this.error(error)
+            return 0
+        }
+    }
+
+    listFind = (name, countingMode, count, value) => {
+        try {
+            var manager = this.getListManager(name)
+            var list = manager.get(name)
+            var counting = 0
+            if (countingMode == 0) {
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i] == value) {
+                        if (++counting == count) {
+                            return i + 1
+                        }
+                    }
+                }
+            } else {
+                for (var i = list.length - 1; i >= 0; i--) {
+                    if (list[i] == value) {
+                        if (++counting == count) {
+                            return i + 1
+                        }
                     }
                 }
             }
-        } else {
-            for (var i = list.length - 1; i >= 0; i--) {
-                if (list[i] == value) {
-                    if (++counting == count) {
-                        return i + 1
-                    }
-                }
-            }
+            return 0
+        } catch (error) {
+            error.message = `无法读取“${name}”：${error.message}`
+            this.error(error)
+            return 0
         }
-        return 0
     }
 
-    listContain = (listName, value) => {
-        if (workID == 0) {
+    listContain = (name, value) => {
+        try {
+            var manager = this.getListManager(name)
+            return manager.get(name).includes(value)
+        } catch (error) {
+            error.message = `无法读取“${name}”：${error.message}`
+            this.error(error)
+            return 0
+        }
+    }
+
+    isUserLogined = async () => {
+        return this.userInfo("id") != 0
+    }
+
+    userInfo = async (type) => {
+        if (!this.user) this.user = await User(this)
+        return this.user[type]
+    }
+
+    onlineUsersNumber = () => {
+        if (!this.connection) {
             this.widgetError("未连接到云")
-            return
+            return 0
         }
-        var listInfo = vars[listName]
-        if (typeof listInfo == "undefined") {
-            this.widgetError(`云列表 ${listName} 不存在`)
-            return
-        }
-        if (listInfo.type != 2) {
-            this.widgetError(`不能对云变量 ${listName} 进行列表操作`)
-            return
-        }
-        return listInfo.value.includes(value)
-    }
-
-    sendListUpdateInfo = (dict) => {
-        connection.send(`42${
-            JSON.stringify([
-                "update_lists",
-                dict
-            ])
-        }`)
+        return this.connection.onlineUsersNumber
     }
 
     value = (value) => {
         var numberValue = Number(value)
         if (!isNaN(numberValue)) return numberValue
         if (value.length > 1024) {
-            value = value.substring(1024)
+            value = value.substring(0, 1024)
             this.widgetWarn("字符串长度超出限制（1024 字符），已舍弃超出部分")
         }
         return value
     }
 
-    index = (list, index, countingMode) => {
-        if (countingMode == 0) {
+    index = (list, index, indexingMode) => {
+        if (indexingMode == 0) {
             return index
         } else {
             return list.length - index + 1
         }
-    }
-
-    userName = () => {
-        return userName
-    }
-
-    userID = () => {
-        return userID
-    }
-
-    onlineUsersNumber = () => {
-        if (workID == 0) {
-            this.widgetError("未连接到云")
-            return
-        }
-        return onlineUsersNumber
     }
 }
 
