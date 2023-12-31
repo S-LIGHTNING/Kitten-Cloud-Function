@@ -1158,7 +1158,7 @@ class DataManager {
 
     redo = (data, uploading) => {
         uploading.forEach(uploading => {
-            uploading.backup = getBackupData(uploading.update)
+            uploading.backup = this.getBackupData(uploading.update)
             this.update(REDO, data, uploading.update)
         })
     }
