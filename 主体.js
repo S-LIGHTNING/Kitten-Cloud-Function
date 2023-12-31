@@ -761,7 +761,12 @@ function KittenCloud(widget, workID) {
                         console.error(error)
                         this.widget.warn(`连接异常：${message}`)
                         this.widget.warn("即将自动重连")
-                        await this.connect()
+                        try {
+                            await this.connect()
+                        } catch (error) {
+                            this.widget.error(error)
+                            this.widget.emit("onConnectionError", error.message)
+                        }
                     } else {
                         this.widget.connection = null
                         error.message = `连接出现错误：${message}`
@@ -1460,12 +1465,14 @@ class ListManager extends DataManager {
     getFirstUploadingUpdatesData = () => {
         var uploadingUpdatesData = {}
         var uploading = this.uploading[0]
-        Object.keys(uploading).forEach(key => {
-            uploadingUpdatesData[key] = []
-            uploading[key].forEach(uploadData => {
-                uploadingUpdatesData[key].push(uploadData.update)
+        if (uploading) {
+            Object.keys(uploading).forEach(key => {
+                uploadingUpdatesData[key] = []
+                uploading[key].forEach(uploadData => {
+                    uploadingUpdatesData[key].push(uploadData.update)
+                })
             })
-        })
+        }
         return uploadingUpdatesData
     }
 
