@@ -1127,15 +1127,10 @@ class DataManager {
     cloudDatasUpdatesFailed = () => {
         if (this.localPreUpdate) {
             this.withPauseLocalUpdate(() => {
-                this.dataList.forEach(data => {
-                    this.undo(data, data.uploading.shift())
-                })
-            })
-        } else {
-            this.dataList.forEach(data => {
-                data.uploading.shift()
+                this.undo(data, this.uploading.unshift())
             })
         }
+        this.uploading.shift()
     }
 
     undoAll = () => {
@@ -1250,14 +1245,13 @@ class PrivateVarManager extends VarManager {
 
     onCloudUpdates = (data) => {
         if (data.code == 1 && data.msg == "ok") {
-            this.dataList.forEach(data => {
-                if (!this.localPreUpdate) {
-                    data.uploading[0].forEach(uploadingData => {
-                        this.update(LOCAL, data, uploadingData.update)
-                    })
-                }
-                data.uploading.shift()
-            })
+            var firstUploading = this.uploading[0]
+            if (!this.localPreUpdate) {
+                Object.keys(firstUploading).forEach(key => {
+                    this.update(LOCAL, this.datas[key], firstUploading[key].update)
+                })
+            }
+            this.uploading.shift()
         } else {
             this.cloudDatasUpdatesFailed()
             this.widget.error(new Error(`私有云变量更新失败：${JSON.stringify(data)}`))
