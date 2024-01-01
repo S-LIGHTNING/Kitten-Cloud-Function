@@ -1369,12 +1369,12 @@ class ListManager extends DataManager {
                         case "all":
                             var originalList = data.value
                             data.value = updateData.value
-                            widget.emit("onListReplaceAll", source, data.name, originalList, data.value)
+                            widget.emit("onListReplaceAll", source, data.name, originalList.slice(), data.value.slice())
                             break
                         default:
                             var originalValue = data.value.slice(updateData.nth - 1)[0]
                             data.value.splice(updateData.nth - 1, 1, updateData.value)
-                            widget.emit("onListReplace", source, data.name, updateData.nth, originalValue.slice(), updateData.value.slice())
+                            widget.emit("onListReplace", source, data.name, updateData.nth, originalValue, updateData.value)
                             break
                     }
                     break
