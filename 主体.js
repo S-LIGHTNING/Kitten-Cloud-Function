@@ -291,13 +291,6 @@ const types = {
                     labelAfter: "项",
                     valueType: "number",
                     defaultValue: 1
-                }, {
-                    key: "position",
-                    valueType: "number",
-                    dropdown: [
-                        { label: "后", value: 0 },
-                        { label: "前", value: 1 }
-                    ]
                 }
             ],
             blockOptions: {
@@ -1324,11 +1317,11 @@ class ListManager extends DataManager {
             switch (updateData.action) {
                 case "append":
                     data.value.push(updateData.value)
-                    widget.emit("onListInsert", source, data.name, 0, updateData.value)
+                    widget.emit("onListInsert", source, data.name, 1, updateData.value)
                     break
                 case "unshift":
                     data.value.unshift(updateData.value)
-                    widget.emit("onListInsert", source, data.name, data.value.length - 1, updateData.value)
+                    widget.emit("onListInsert", source, data.name, data.value.length, updateData.value)
                     break
                 case "insert":
                     data.value.splice(updateData.nth - 1, 0, updateData.value)
@@ -1385,6 +1378,8 @@ class ListManager extends DataManager {
         if ("nth" in updateData && updateData.nth != null) {
             simplifyUpdateData.nth = updateData.nth
         }
+        console.log(updateData)
+        console.log(simplifyUpdateData)
         return simplifyUpdateData
     }
 
@@ -1403,7 +1398,7 @@ class ListManager extends DataManager {
             case "insert":
                 return {
                     action: "delete",
-                    nth: updateData.nth + 1
+                    nth: updateData.nth
                 }
             case "delete":
                 switch (updateData.nth) {
@@ -1419,17 +1414,10 @@ class ListManager extends DataManager {
                             value: data.value.slice()
                         }
                     default:
-                        if (updateData.nth == 1) {
-                            return {
-                                action: "unshift",
-                                value: data.value[0]
-                            }
-                        } else {
-                            return {
-                                action: "insert",
-                                nth: updateData.nth - 1,
-                                value: data.value[updateData.nth - 1]
-                            }
+                        return {
+                            action: "insert",
+                            nth: updateData.nth,
+                            value: data.value[updateData.nth - 1]
                         }
                 }
             case "replace":
@@ -1649,26 +1637,19 @@ class Widget extends InvisibleWidget {
     }
 
     insert = (value, name, indexingMode, index, position) => {
-        if (index == 1 && indexingMode == 0 && position == 0) {
-            this.append(value, name, "unshift")
-        } else {
-            try {
-                var manager = this.getListManager(name)
-                index = this.index(manager.get(name), index, indexingMode)
-                if (position == 1) {
-                    index--
-                }
-                var data = {
-                    name: name,
-                    action: "insert",
-                    nth: index,
-                    value: value
-                }
-                manager.localUpdate(data)
-            } catch (error) {
-                error.message = `无法更新云列表“${name}”：${error.message}`
-                this.error(error)
+        try {
+            var manager = this.getListManager(name)
+            index = this.index(manager.get(name), index, indexingMode)
+            var data = {
+                name: name,
+                action: "insert",
+                nth: index,
+                value: value
             }
+            manager.localUpdate(data)
+        } catch (error) {
+            error.message = `无法更新云列表“${name}”：${error.message}`
+            this.error(error)
         }
     }
 
