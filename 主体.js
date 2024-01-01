@@ -736,7 +736,7 @@ function KittenCloud(widget, workID) {
 
     this.privateVar = new PrivateVarManager(widget, this)
     this.publicVar = new PublicVarManager(widget, this)
-    this.list = new ListManager(widget, this, this.list, "update_lists")
+    this.list = new ListManager(widget, this)
 
     this.hasList = null
     this.listsInfo = null
@@ -1151,7 +1151,7 @@ class DataManager {
 
     redo = (data, uploading) => {
         uploading.forEach(uploading => {
-            uploading.backup = this.getBackupData(uploading.update)
+            uploading.backup = this.getBackupData(uploading.update, data)
             this.update(REDO, data, uploading.update)
         })
     }
