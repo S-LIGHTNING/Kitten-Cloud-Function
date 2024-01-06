@@ -10,7 +10,7 @@ const types = {
     title: "源码云功能",
     author: "SLIGHTNING",
     icon: "icon-widget-cloud-room",
-	version: "1.0.0",
+	version: "1.0.1",
     isInvisibleWidget: true,
     isGlobalWidget: true,
     properties: [
@@ -239,6 +239,22 @@ const types = {
                 space: 40
             }
         }, {
+            key: "getList",
+            params: [
+                {
+                    key: "name",
+                    labelAfter: "副本",
+                    valueType: "string",
+                    defaultValue: "云列表"
+                }
+            ],
+            valueType: "array",
+            blockOptions: {
+                color: "#c7c100",
+                callMethodLabel: false,
+                line: "云列表"
+            }
+        }, {
             key: "append",
             label: "添加",
             params: [
@@ -262,12 +278,11 @@ const types = {
             ],
             blockOptions: {
                 color: "#c7c100",
-                callMethodLabel: false,
-                line: "云列表"
+                callMethodLabel: false
             }
         }, {
-            key: "insert",
-            label: "插入",
+            key: "add",
+            label: "添加",
             params: [
                 {
                     key: "value",
@@ -365,6 +380,25 @@ const types = {
                     label: "为",
                     valueType: "string",
                     defaultValue: "值"
+                }
+            ],
+            blockOptions: {
+                color: "#c7c100",
+                callMethodLabel: false
+            }
+        }, {
+            key: "replaceAll",
+            label: "复制",
+            params: [
+                {
+                    key: "list1",
+                    valueType: ["string", "array"],
+                    defaultValue: "列表（可放入本地列表）"
+                }, {
+                    key: "list2",
+                    label: "到",
+                    valueType: "string",
+                    defaultValue: "云列表"
                 }
             ],
             blockOptions: {
@@ -531,8 +565,8 @@ const types = {
             label: "在线用户数改变",
             params: []
         }, {
-            key: "onListInsert",
-            label: "云列表插入",
+            key: "onListAdd",
+            label: "云列表添加",
             params: [
                 {
                     key: "source",
@@ -994,6 +1028,9 @@ function KittenCloud(widget, workID) {
                         break
                 }
             })
+            this.privateVar.allCloudDatasUpdatesFailed()
+            this.publicVar.allCloudDatasUpdatesFailed()
+            this.list.allCloudDatasUpdatesFailed()
             this.publicVar.cloudUpdates(publicUpdates)
             this.list.cloudUpdates(listUpdates)
         }
@@ -1070,7 +1107,6 @@ class DataManager {
                         this.updateMessage,
                         this.getUploadsData()
                     ])}`)
-                    this.uploading.push(this.toBeUploadeds)
                     this.toBeUploadeds = null
                 }, Math.max(0, this.lastUploadTime + this.intervalTime - Date.now()));
             }
@@ -1123,7 +1159,16 @@ class DataManager {
                 this.undo(data, this.uploading.unshift())
             })
         }
-        this.uploading.shift()
+    }
+
+    allCloudDatasUpdatesFailed = () => {
+        if (this.localPreUpdate) {
+            this.withPauseLocalUpdate(() => {
+                while (this.uploading.length) {
+                    this.undo(data, this.uploading.unshift())
+                }
+            })
+        }
     }
 
     undoAll = () => {
@@ -1202,6 +1247,7 @@ class VarManager extends DataManager {
             this.toBeUploadeds[key] = [dataUploadData]
             uploadsData.push(this.getDataUploadData(this.datas[key], dataUploadData))
         })
+        this.uploading.push(this.toBeUploadeds)
         return uploadsData
     }
 
@@ -1300,16 +1346,11 @@ class ListManager extends DataManager {
     constructor(widget, cloud) {
         super(widget, cloud, 0)
         this.localPreUpdate = widget.listLocalPreUpdate
-        // if (this.localPreUpdate) {
-        //     var error = new Error("暂不支持云列表本地预更新")
-        //     widget.error(error)
-        //     throw error
-        // }
         this.updateMessage = "update_lists"
     }
 
     effective = (updateData, data=this.getData(updateData)) => {
-        return !("nth" in updateData && typeof a == "number" && updateData.nth <= 0)
+        return !("nth" in updateData && typeof updateData.nth == "number" && updateData.nth <= 0)
     }
 
     update = (source, data, updateData) => {
@@ -1317,15 +1358,15 @@ class ListManager extends DataManager {
             switch (updateData.action) {
                 case "append":
                     data.value.push(updateData.value)
-                    widget.emit("onListInsert", source, data.name, 1, updateData.value)
+                    widget.emit("onListAdd", source, data.name, 1, updateData.value)
                     break
                 case "unshift":
                     data.value.unshift(updateData.value)
-                    widget.emit("onListInsert", source, data.name, data.value.length, updateData.value)
+                    widget.emit("onListAdd", source, data.name, data.value.length, updateData.value)
                     break
                 case "insert":
                     data.value.splice(updateData.nth - 1, 0, updateData.value)
-                    widget.emit("onListInsert", source, data.name, updateData.nth, updateData.value)
+                    widget.emit("onListAdd", source, data.name, updateData.nth, updateData.value)
                     break
                 case "delete":
                     switch (updateData.nth) {
@@ -1372,14 +1413,12 @@ class ListManager extends DataManager {
     getSimplifyUpdateData = (updateData) => {
         var simplifyUpdateData = {}
         simplifyUpdateData.action = updateData.action
-        if ("value" in updateData) {
+        if ("value" in updateData && updateData.value != null) {
             simplifyUpdateData.value = updateData.value
         }
         if ("nth" in updateData && updateData.nth != null) {
             simplifyUpdateData.nth = updateData.nth
         }
-        console.log(updateData)
-        console.log(simplifyUpdateData)
         return simplifyUpdateData
     }
 
@@ -1464,6 +1503,9 @@ class ListManager extends DataManager {
             uploadsData[key] = []
             this.toBeUploadeds[key].forEach(uploadData => {
                 uploadsData[key].push(uploadData.update)
+                var upload = {}
+                upload[key] = [uploadData]
+                this.uploading.push(upload)
             })
         })
         return uploadsData
@@ -1471,11 +1513,9 @@ class ListManager extends DataManager {
 
     onCloudUpdates = (updatesData) => {
         Object.values(updatesData).forEach(dataUpdatesData => {
-            dataUpdatesData.forEach(update => {
-                if (update.nth == null) {
-                    delete update.nth
-                }
-            })
+            for (var i = 0; i < dataUpdatesData.length; i++) {
+                dataUpdatesData[i] = this.getSimplifyUpdateData(dataUpdatesData[i])
+            }
         })
         this.cloudUpdates(updatesData)
     }
@@ -1621,6 +1661,17 @@ class Widget extends InvisibleWidget {
         }
     }
 
+    getList = (name) => {
+        try {
+            var manager = this.getListManager(name)
+            return manager.get(name).slice()
+        } catch (error) {
+            error.message = `无法读取“${name}”：${error.message}`
+            this.error(error)
+            return []
+        }
+    }
+
     append = (value, name, position) => {
         try {
             var manager = this.getListManager(name)
@@ -1636,7 +1687,7 @@ class Widget extends InvisibleWidget {
         }
     }
 
-    insert = (value, name, indexingMode, index, position) => {
+    add = (value, name, indexingMode, index) => {
         try {
             var manager = this.getListManager(name)
             index = this.index(manager.get(name), index, indexingMode)
@@ -1705,6 +1756,32 @@ class Widget extends InvisibleWidget {
             manager.localUpdate(data)
         } catch (error) {
             error.message = `无法更新云列表“${name}”：${error.message}`
+            this.error(error)
+        }
+    }
+
+    replaceAll = (list1, list2) => {
+        try {
+            var manager
+            if (!Array.isArray(list1)) {
+                manager = this.getListManager(list1)
+                list1 = manager.get(list1)
+            }
+            manager = this.getListManager(list2)
+            manager.localUpdate({
+                name: list2,
+                action: "delete",
+                nth: "all"
+            })
+            list1.forEach(item => {
+                manager.localUpdate({
+                    name: list2,
+                    action: "append",
+                    value: this.value(item)
+                })
+            })
+        } catch (error) {
+            error.message = `无法更新云列表“${list2}”：${error.message}`
             this.error(error)
         }
     }
