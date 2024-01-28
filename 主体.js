@@ -25,7 +25,7 @@ const types = {
     title: "源码云功能",
     author: "SLIGHTNING",
     icon: "icon-widget-cloud-room",
-	version: "1.0.1",
+	version: "1.0.2",
     isInvisibleWidget: true,
     isGlobalWidget: true,
     properties: [
