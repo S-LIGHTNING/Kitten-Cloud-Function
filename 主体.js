@@ -1,7 +1,22 @@
 const PRIVATE_VAR = 0, PUBLIC_VAR = 1, LIST = 2, VAR = 3, ALL = 4
+const KITTEN = 0, NEMO = 1
 const READ = 0, WRITE = 1, READWRITE = 2
 const LOCAL = 0, CLOUD = 1, UNDO = 2, REDO = 3
 const MALE = 1, FEMALE = 0
+const API = {
+    [KITTEN]: {
+        authorizationType: 0,
+        stag: 1,
+        getWorkInfoUrl: workID => `https://api-creation.codemao.cn/kitten/r2/work/player/load/${workID}`,
+        getBcmcUrl: info => info.source_urls[0]
+    },
+    [NEMO]: {
+        authorizationType: 5,
+        stag: 2,
+        getWorkInfoUrl: workID => `https://api.codemao.cn/creation-tools/v1/works/${workID}/source/public`,
+        getBcmcUrl: info => info.work_urls[0]
+    }
+}
 
 const axios = require("axios")
 
@@ -47,8 +62,14 @@ const types = {
             label: "连接",
             params: [
                 {
-                    key: "theWorkID",
+                    key: "workType",
                     label: "到",
+                    dropdown: [
+                        { label: "KITTEN", value: KITTEN },
+                        { label: "NEMO", value: NEMO },
+                    ]
+                }, {
+                    key: "workID",
                     valueType: "number",
                     defaultValue: 0
                 }
@@ -83,7 +104,7 @@ const types = {
                     valueType: "number",
                     dropdown: [
                         { label: "云变量", value: VAR },
-                        { label: "云变量", value: LIST },
+                        { label: "云列表", value: LIST },
                         { label: "所有", value: ALL }
                     ]
                 }, {
@@ -712,8 +733,8 @@ function Task(widget, name, func, maxRetryTimes=widget.maxRetryTimes, hint=false
             } catch (error) {
                 var message = `${name} 时出错：${error.message}`
                 if (retryTimes >= maxRetryTimes) {
+                    error.message = message
                     if (maxRetryTimes != 0) {
-                        error.message = message
                         widget.error(error)
                         widget.error(new Error("重试次数已达上限，不再重试"))
                     }
@@ -759,9 +780,10 @@ function equal(a, b) {
     }
 }
 
-function KittenCloud(widget, workID) {
+function KittenCloud(widget, workType, workID) {
 
     var getMessageResolve, getMessageReject
+    var api = API[workType]
 
     this.widget = widget
     this.workID = workID
@@ -863,10 +885,11 @@ function KittenCloud(widget, workID) {
                     try {
                         await Task(widget, "加载云列表", async () => {
                             var info = (await Task(widget, "获取作品数据", async () => {
-                                return HTTP.get(`https://api-creation.codemao.cn/kitten/r2/work/player/load/${this.workID}`)
+                                return HTTP.get(api.getWorkInfoUrl(workID))
                             })())
+
                             var work = (await Task(widget, "获取作品编译文件", async () => {
-                                return HTTP.get(info.source_urls[0])
+                                return HTTP.get(api.getBcmcUrl(info))
                             })())
                             this.listsInfo = []
                             Object.values(work.cloud_variables).forEach(info => {
@@ -899,7 +922,7 @@ function KittenCloud(widget, workID) {
         var b = "codemao"
         var c = "cn"
         var port = "9096"
-        this.connection = new WS(`wss://${a}.${b}.${c}:${port}/cloudstorage/?session_id=${workID}&authorization_type=1&stag=1&EIO=3&transport=websocket`)
+        this.connection = new WS(`wss://${a}.${b}.${c}:${port}/cloudstorage/?session_id=${workID}&authorization_type=${api.authorizationType}&stag=${api.stag}&EIO=3&transport=websocket`)
     })
 
     this.getMessage = () => {
@@ -1562,12 +1585,12 @@ class Widget extends InvisibleWidget {
         this.widgetError(error.message)
     }
 
-    connect = async (workID) => {
+    connect = async (workType, workID) => {
         if (this.connection) {
             this.widgetWarn("上一个连接未断开")
             this.disconnect()
         }
-        this.connection = KittenCloud(this, workID)
+        this.connection = KittenCloud(this, Number(workType), workID)
         await this.connection.init()
         this.log(`成功 连接到 ${workID}`)
     }
@@ -1594,7 +1617,7 @@ class Widget extends InvisibleWidget {
         if (this.connection == null) {
             return false
         }
-        if (dateType == READ || operation == VAR) {
+        if (dateType == VAR || operation == READ) {
             return this.connection.hasList != null
         }
         return listsInfo != null && !(listsInfo instanceof Error)
@@ -1851,7 +1874,7 @@ class Widget extends InvisibleWidget {
     }
 
     isUserLogined = async () => {
-        return this.userInfo("id") != 0
+        return await this.userInfo("id") != 0
     }
 
     userInfo = async (type) => {
