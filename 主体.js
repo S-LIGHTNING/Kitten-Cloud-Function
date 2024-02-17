@@ -5,7 +5,7 @@ const LOCAL = 0, CLOUD = 1, UNDO = 2, REDO = 3
 const MALE = 1, FEMALE = 0
 const API = {
     [KITTEN]: {
-        authorizationType: 0,
+        authorizationType: 1,
         stag: 1,
         getWorkInfoUrl: workID => `https://api-creation.codemao.cn/kitten/r2/work/player/load/${workID}`,
         getBcmcUrl: info => info.source_urls[0]
@@ -25,7 +25,7 @@ const types = {
     title: "源码云功能",
     author: "SLIGHTNING",
     icon: "icon-widget-cloud-room",
-	version: "1.0.2",
+	version: "1.0.3",
     isInvisibleWidget: true,
     isGlobalWidget: true,
     properties: [
@@ -528,6 +528,10 @@ const types = {
     ],
     events: [
         {
+            key: "onConnectDone",
+            label: "连接完成",
+            params: []
+        }, {
             key: "onConnectionError",
             label: "连接出现错误",
             params: [
@@ -843,16 +847,6 @@ function KittenCloud(widget, workType, workID) {
             var timeout = setTimeout(() => {
                 getMessageReject(new Error("时间超出"))
             }, 60000)
-            function listInit() {
-                this.listsInfo.forEach(info => {
-                    this.list.datas[info.cvid].id = info.id
-                })
-            }
-            function loadListFailed() {
-                var error = this.listsInfo
-                error.message = `云列表加载失败：${error.message}`
-                widget.error(error)
-            }
             ;(async () => {
                 try {
                     var loading = true
@@ -862,9 +856,9 @@ function KittenCloud(widget, workType, workID) {
                             if (this.hasList) {
                                 if (this.listsInfo != null) {
                                     if (this.listsInfo instanceof Error) {
-                                        loadListFailed()
+                                        this.loadListFailed()
                                     } else {
-                                        listInit()
+                                        this.listInit()
                                     }
                                     resolve()
                                 }
@@ -898,14 +892,14 @@ function KittenCloud(widget, workType, workID) {
                                 }
                             })
                             if (this.hasList) {
-                                listInit()
+                                this.listInit()
                                 resolve()
                             }
                         }, 0)()
                     } catch (error) {
                         this.listsInfo = error
                         if (this.hasList == true) {
-                            loadListFailed()
+                            this.loadListFailed()
                         }
                         if (this.hasList != null) {
                             resolve()
@@ -915,6 +909,18 @@ function KittenCloud(widget, workType, workID) {
             }
         })
     }, widget.maxRetryTimes, true)
+
+    this.listInit = () => {
+        this.listsInfo.forEach(info => {
+            this.list.datas[info.cvid].id = info.id
+        })
+    }
+
+    this.loadListFailed = () => {
+        var error = this.listsInfo
+        error.message = `云列表加载失败：${error.message}`
+        widget.error(error)
+    }
 
     this.establishWSConnection = Task(widget, `建立 ${"Web"}${"Socket"} 连接`, () => {
         var WS = new Function(`return ${"Web"}${"Socket"}`)()
@@ -1333,7 +1339,7 @@ class PublicVarManager extends VarManager  {
         if (this.effective(updateData, data)) {
             var originalValue = data.value
             data.value = updateData.value
-            widget.emit("onPublicVarChange", source, data.name, originalValue, data.value)
+            this.widget.emit("onPublicVarChange", source, data.name, originalValue, data.value)
         }
     }
 
@@ -1381,32 +1387,32 @@ class ListManager extends DataManager {
             switch (updateData.action) {
                 case "append":
                     data.value.push(updateData.value)
-                    widget.emit("onListAdd", source, data.name, 1, updateData.value)
+                    this.widget.emit("onListAdd", source, data.name, data.value.length, updateData.value)
                     break
                 case "unshift":
                     data.value.unshift(updateData.value)
-                    widget.emit("onListAdd", source, data.name, data.value.length, updateData.value)
+                    this.widget.emit("onListAdd", source, data.name, 1, updateData.value)
                     break
                 case "insert":
                     data.value.splice(updateData.nth - 1, 0, updateData.value)
-                    widget.emit("onListAdd", source, data.name, updateData.nth, updateData.value)
+                    this.widget.emit("onListAdd", source, data.name, updateData.nth, updateData.value)
                     break
                 case "delete":
                     switch (updateData.nth) {
                         case "last":
                             var originalValue = data.value.slice(-1)[0]
                             data.value.splice(-1, 1)
-                            widget.emit("onListDelete", source, data.name, data.value.length, originalValue)
+                            this.widget.emit("onListDelete", source, data.name, data.value.length, originalValue)
                             break
                         case "all":
                             var originalList = data.value
                             data.value = []
-                            widget.emit("onListDeleteAll", source, data.name, originalList.slice())
+                            this.widget.emit("onListDeleteAll", source, data.name, originalList.slice())
                             break
                         default:
                             var originalValue = data.value[updateData.nth - 1]
                             data.value.splice(updateData.nth - 1, 1)
-                            widget.emit("onListDelete", source, data.name, updateData.nth, originalValue)
+                            this.widget.emit("onListDelete", source, data.name, updateData.nth, originalValue)
                             break
                     }
                     break
@@ -1415,17 +1421,17 @@ class ListManager extends DataManager {
                         case "last":
                             var originalValue = data.value.slice(-1)[0]
                             data.value.splice(-1, 1, updateData.value)
-                            widget.emit("onListReplace", source, data.name, data.value.length, originalValue, updateData.value)
+                            this.widget.emit("onListReplace", source, data.name, data.value.length, originalValue, updateData.value)
                             break
                         case "all":
                             var originalList = data.value
                             data.value = updateData.value
-                            widget.emit("onListReplaceAll", source, data.name, originalList.slice(), data.value.slice())
+                            this.widget.emit("onListReplaceAll", source, data.name, originalList.slice(), data.value.slice())
                             break
                         default:
                             var originalValue = data.value.slice(updateData.nth - 1)[0]
                             data.value.splice(updateData.nth - 1, 1, updateData.value)
-                            widget.emit("onListReplace", source, data.name, updateData.nth, originalValue, updateData.value)
+                            this.widget.emit("onListReplace", source, data.name, updateData.nth, originalValue, updateData.value)
                             break
                     }
                     break
@@ -1563,6 +1569,8 @@ async function User(widget) {
     }
 }
 
+var user
+
 class Widget extends InvisibleWidget {
 
     constructor(props) {
@@ -1590,8 +1598,9 @@ class Widget extends InvisibleWidget {
             this.widgetWarn("上一个连接未断开")
             this.disconnect()
         }
-        this.connection = KittenCloud(this, Number(workType), workID)
+        this.connection = new KittenCloud(this, Number(workType), workID)
         await this.connection.init()
+        this.emit("onConnectDone")
         this.log(`成功 连接到 ${workID}`)
     }
 
@@ -1878,8 +1887,8 @@ class Widget extends InvisibleWidget {
     }
 
     userInfo = async (type) => {
-        if (!this.user) this.user = await User(this)
-        return this.user[type]
+        if (!user) user = await User(this)
+        return user[type]
     }
 
     onlineUsersNumber = () => {
