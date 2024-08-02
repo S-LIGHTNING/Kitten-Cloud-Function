@@ -116,6 +116,11 @@ const types: OriginalTypesObject = {
             label: "关闭连接",
             params: []
         }, {
+            key: "isConnected",
+            label: "已连接",
+            params: [],
+            valueType: ValueType.BOOLEAN
+        }, {
             key: "connectedWorkID",
             label: "已连接作品编号",
             params: [],
@@ -892,6 +897,7 @@ class KittenCloudWidget extends InvisibleWidget {
     [key: string]: unknown
 
     private connection: KittenCloudFunction | None
+    private isOpened: boolean = false
 
     public constructor(props: {}) {
         super(props)
@@ -971,9 +977,10 @@ class KittenCloudWidget extends InvisibleWidget {
 
     public async connect(this: this, workID: number): Promise<void> {
         if (this.connection != None) {
-            await this.disconnect()
+            await this.close()
             this.warn("上一个连接未断开，已自动断开")
         }
+        this.isOpened = false
         this.connection = new KittenCloudFunction(
             new CodemaoWork({ id: workID })
         )
@@ -1039,18 +1046,32 @@ class KittenCloudWidget extends InvisibleWidget {
                 }
             }
         )
+        this.connection.opened.connect((): void => {
+            this.isOpened = true
+            this.emit("onOpen")
+        })
         this.connection.errored.connect((error): void => {
+            if (!this.isOpened) {
+                this.connection = None
+            }
             this.error(error)
         })
-        this.connection.closed.connect((): void => {
-            this.connection = null
-        })
+        this.connection.closed.connect(this.handleClose)
     }
 
-    public async disconnect(this: this): Promise<void> {
+    private handleClose = (): void => {
+        this.connection = None
+    }
+
+    public async close(this: this): Promise<void> {
         const connection: KittenCloudFunction = this.getConnection()
         connection.close()
-        await connection.closed.wait()
+        connection.closed.disconnect(this.handleClose)
+        this.connection = None
+    }
+
+    public async isConnected(this: this): Promise<boolean> {
+        return this.connection != None
     }
 
     public async connectedWorkID(this: this): Promise<number> {

@@ -13,6 +13,9 @@ export type KittenCloudDataInfoObject = {
     value: unknown
 }
 
+/**
+ * 云数据组，用于管理云数据实例。
+ */
 export abstract class KittenCloudDataGroup<DATA_TYPE extends KittenCloudData = KittenCloudData>
     extends KittenCloudFunctionConfigLayer {
 
@@ -66,6 +69,13 @@ export abstract class KittenCloudDataGroup<DATA_TYPE extends KittenCloudData = K
         this: this, cvid: string, name: string, value: unknown
     ): DATA_TYPE
 
+    /**
+     * 获取该云数据组指定的云数据实例。
+     *
+     * @param index 索引，可以是云数据的名称或 cvid
+     * @returns 对应的云数据实例
+     * @throws 如果不存在该云数据实例，则抛出异常
+     */
     public async get(this: this, index: string): Promise<DATA_TYPE> {
         if (this.connecting) {
             await this.connected.wait()
@@ -77,6 +87,11 @@ export abstract class KittenCloudDataGroup<DATA_TYPE extends KittenCloudData = K
         return data
     }
 
+    /**
+     * 获取该云数据组中的所有云数据。
+     *
+     * @returns 由所有云数据组成的数组
+     */
     public async getAll(this: this): Promise<DATA_TYPE[]> {
         if (this.connecting) {
             await this.connected.wait()

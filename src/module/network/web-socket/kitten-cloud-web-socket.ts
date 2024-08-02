@@ -77,6 +77,8 @@ export class KittenCloudWebSocket {
             socket.received.connect((message: MessageEvent): void => { this.handleReceived(message.data) })
             socket.errored.connect((error: Event): void => { this.errored.emit(error) })
             socket.closed.connect((event: CloseEvent): void => { this.handleClose(event) })
+        }).catch((reason: unknown): void => {
+            this.errored.emit(reason)
         })
     }
 

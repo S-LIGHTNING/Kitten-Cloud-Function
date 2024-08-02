@@ -275,7 +275,8 @@ export class KittenCloudFunction extends KittenCloudFunctionConfigLayer {
     }
 
     /**
-     * 用于获取云数据实例。
+     * 获取云数据实例。
+     *
      * @param index 该数据的名称或 cvid
      * @returns 对应云数据实例
      * @throws 如果不存在该云数据实例，则抛出异常
@@ -306,7 +307,8 @@ export class KittenCloudFunction extends KittenCloudFunctionConfigLayer {
     private static _user: CodemaoUser | None = None
 
     /**
-     * 用于获取当前用户信息
+     * 当前用户。
+     *
      * @returns CodemaoUser
      */
     public static get user(): CodemaoUser {
