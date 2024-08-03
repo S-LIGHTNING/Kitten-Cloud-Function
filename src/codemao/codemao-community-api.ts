@@ -1,19 +1,59 @@
-import axios from "axios"
+import axios, { AxiosRequestConfig } from "axios"
 import { CodemaoUserSex } from "./user/codemao-user-sex"
 import { None } from "../utils/other"
 
-type ModuleResponse<T> = {
-    code: number,
-    msg: string,
-    description: string,
-    data: T
-}
-
-function moduleResponseDate<T>(data: ModuleResponse<T>): T {
-    if (data.code != 200) {
-        throw new Error(`codemao api error: ${data.msg}`)
+async function codemaoAxios<T>(argument: AxiosRequestConfig): Promise<T> {
+    try {
+        const { data } = await axios<T>(argument)
+        if (
+            data != None && typeof data == "object" &&
+            "code" in data && typeof data.code == "number" &&
+            "msg" in data && typeof data.msg == "string" &&
+            "description" in data && typeof data.description == "string" &&
+            "data" in data
+        ) {
+            if (data.code != 200) {
+                const error = new Error()
+                Object.assign(error, {
+                    request: argument,
+                    response: {
+                        status: data.code,
+                        statusText: "未知错误",
+                        data: data
+                    }
+                })
+                throw error
+            }
+            return data.data as T
+        }
+        return data as T
+    } catch (error) {
+        if (!axios.isAxiosError(error)) {
+            throw error
+        }
+        const { request, response } = error
+        try {
+            if (request == None) {
+                throw new Error("请求发送失败")
+            } else if (response == None) {
+                throw new Error("请求已发出，但未收到响应")
+            } else {
+                const { status, data } = response
+                if (!(
+                    typeof data == "object" &&
+                    ("error_message" in data || "error" in data || "msg" in data)
+                )) {
+                    throw new Error(status.toString())
+                }
+                throw new Error(`${status}，${data.error_message ?? data.error ?? data.msg}`)
+            }
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error
+            }
+            throw new Error(`${argument.method} ${argument.url} 失败：${error.message}`)
+        }
     }
-    return data.data
 }
 
 export type UserProfileObject = {
@@ -239,12 +279,12 @@ export type KittenWorkPublicResourceObject = {
  */
 export async function getUserProfile(authorization?: string | None): Promise<UserProfileObject> {
     const headers = authorization == null ? {} : { Cookie: `Authorization=${authorization}` }
-    return (await axios({
+    return (await codemaoAxios({
         method: "GET",
         url: "https://api.codemao.cn/tiger/v3/web/accounts/profile",
         withCredentials: true,
         headers
-    })).data
+    }))
 }
 
 /**
@@ -254,55 +294,73 @@ export async function getUserProfile(authorization?: string | None): Promise<Use
  *
  * @param authorization 用户凭证，留空则使用浏览器 Cookie
  */
-export async function getThisUserDetail(authorization?: string | None): Promise<ThisUserDetailObject> {
+export function getThisUserDetail(authorization?: string | None): Promise<ThisUserDetailObject> {
     const headers = authorization == null ? {} : { Cookie: `Authorization=${authorization}` }
-    return (await axios({
+    return codemaoAxios({
         method: "GET",
         url: "https://api.codemao.cn/web/users/details",
         withCredentials: true,
         headers
-    })).data
+    })
 }
 
 /**
  * https://api.codemao.cn/api/user/info/detail/${userID}
  */
 export async function getUserDetail(userID: number): Promise<UserDetailObject> {
-    return moduleResponseDate((await axios.get<ModuleResponse<{ userInfo: UserDetailObject }>>(`https://api.codemao.cn/api/user/info/detail/${userID}`)).data).userInfo
+    return (await codemaoAxios<{ userInfo: UserDetailObject }>({
+        method: "GET",
+        url: `https://api.codemao.cn/api/user/info/detail/${userID}`,
+        withCredentials: true
+    })).userInfo
 }
 
 /**
  * https://api.codemao.cn/creation-tools/v1/user/center/honor?user_id=${userID}
  */
-export async function getUserHonor(userID: number): Promise<UserHonorObject> {
-    return (await axios.get<UserHonorObject>(`https://api.codemao.cn/creation-tools/v1/user/center/honor?user_id=${userID}`)).data
+export function getUserHonor(userID: number): Promise<UserHonorObject> {
+    return codemaoAxios({
+        method: "GET",
+        url: `https://api.codemao.cn/creation-tools/v1/user/center/honor?user_id=${userID}`
+    })
 }
 
 /**
  * https://api.codemao.cn/creation-tools/v1/works/${workID}
  */
-export async function getWorkInfo(workID: number): Promise<WorkInfoObject> {
-    return (await axios.get<WorkInfoObject>(`https://api.codemao.cn/creation-tools/v1/works/${workID}`)).data
+export function getWorkInfo(workID: number): Promise<WorkInfoObject> {
+    return codemaoAxios({
+        method: "GET",
+        url: `https://api.codemao.cn/creation-tools/v1/works/${workID}`
+    })
 }
 
 /**
  * https://api.codemao.cn/api/work/info/${workID}
  */
 export async function getWorkDetail(workID: number): Promise<WorkDetailObject> {
-    return moduleResponseDate((await axios.get<ModuleResponse<{ workDetail: WorkDetailObject }>>(`https://api.codemao.cn/api/work/info/${workID}`)).data).workDetail
+    return (await codemaoAxios<{ workDetail: WorkDetailObject }>({
+        method: "GET",
+        url: `https://api.codemao.cn/api/work/info/${workID}`
+    })).workDetail
 }
 
 /**
  * https://api.codemao.cn/creation-tools/v1/works/${workID}/source/public
  */
-export async function getNemoWorkPublicResource(workID: number): Promise<NemoWorkPublicResourceObject> {
-    return (await axios.get<NemoWorkPublicResourceObject>(`https://api.codemao.cn/creation-tools/v1/works/${workID}/source/public`)).data
+export function getNemoWorkPublicResource(workID: number): Promise<NemoWorkPublicResourceObject> {
+    return codemaoAxios({
+        method: "GET",
+        url: `https://api.codemao.cn/creation-tools/v1/works/${workID}/source/public`
+    })
 }
-
 
 /**
  * https://api-creation.codemao.cn/kitten/r2/work/player/load/${workID}
  */
-export async function getKittenWorkPublicResource(workID: number): Promise<KittenWorkPublicResourceObject> {
-    return (await axios.get<KittenWorkPublicResourceObject>(`https://api-creation.codemao.cn/kitten/r2/work/player/load/${workID}`)).data
+export function getKittenWorkPublicResource(workID: number): Promise<KittenWorkPublicResourceObject> {
+    return codemaoAxios({
+        method: "GET",
+        url: `https://api-creation.codemao.cn/kitten/r2/work/player/load/${workID}`
+    })
 }

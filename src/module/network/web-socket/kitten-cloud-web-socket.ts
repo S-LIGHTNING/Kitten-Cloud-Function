@@ -102,9 +102,7 @@ export class KittenCloudWebSocket {
             })()
             const socket = new WebSocketProxy(url)
             return socket
-        } else if (argument instanceof (
-            new Function("return " + ["Web", "Socket"].join(""))() as typeof WebSocket
-        )) {
+        } else if (argument instanceof WebSocket) {
             return new WebSocketProxy(argument)
         } else {
             return argument

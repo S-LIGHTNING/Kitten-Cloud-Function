@@ -12,7 +12,6 @@ export class WebSocketProxy {
     public readonly closed: Signal<CloseEvent>
 
     public constructor(argument: string | URL | WebSocket) {
-        const WebSocket: typeof window.WebSocket = new Function("return " + ["Web", "Socket"].join(""))()
         if (typeof argument == "string" || argument instanceof URL) {
             this.url = argument.toString()
             this.socket = new WebSocket(this.url)

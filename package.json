@@ -1,6 +1,8 @@
 {
     "scripts": {
-        "build": "webpack --config webpack.config.js",
+        "build--coco-widget": "webpack --config coco-widget.webpack.config.js",
+        "build--tampermonkey": "webpack --config tampermonkey.webpack.config.js",
+        "build": "npm run build--coco-widget && npm run build--tampermonkey",
         "make-docs": "typedoc --sort static-first --sort source-order --plugin typedoc-material-theme"
     },
     "dependencies": {

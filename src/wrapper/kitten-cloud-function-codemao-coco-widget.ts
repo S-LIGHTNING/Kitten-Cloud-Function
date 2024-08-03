@@ -7,7 +7,7 @@ import { CodemaoUser } from "../codemao/user/codemao-user"
 import { KittenCloudPrivateVariable, KittenCloudPrivateVariableRankingListItemObject } from "../module/cloud-data/kitten-cloud-private-variable"
 import { KittenCloudList, KittenCloudListAddMessageObject, KittenCloudListEmptyMessageObject, KittenCloudListItemValue, KittenCloudListPopMessageObject, KittenCloudListPushMessageObject, KittenCloudListRemoveMessageObject, KittenCloudListReplaceLastMessageObject, KittenCloudListReplaceMessageObject, KittenCloudListUnshiftMessageObject } from "../module/cloud-data/kitten-cloud-list"
 import { KittenCloudPublicVariable } from "../module/cloud-data/kitten-cloud-public-variable"
-import { KittenCloudOnlineUserNumberChangObject } from "../module/kitten-cloud-online-user-number"
+import { KittenCloudOnlineUserNumber, KittenCloudOnlineUserNumberChangObject } from "../module/kitten-cloud-online-user-number"
 import { KittenCloudPrivateVariableGroup } from "../module/cloud-data/group/kitten-cloud-private-variable-group"
 import { KittenCloudPublicVariableGroup } from "../module/cloud-data/group/kitten-cloud-public-variable-group"
 import { KittenCloudListGroup } from "../module/cloud-data/group/kitten-cloud-list-group"
@@ -884,6 +884,18 @@ const types: OriginalTypesObject = {
 const userMap = new Map<number, CodemaoUser>()
 userMap.set(0, KittenCloudFunction.user)
 
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        return error.message
+    } else if (Array.isArray(error)) {
+        return error.map(getErrorMessage).join("\n")
+    } else if (typeof error == "string") {
+        return error
+    } else {
+        return JSON.stringify(error)
+    }
+}
+
 declare class InvisibleWidget {
     constructor(props: {})
     public widgetLog(message: string): void
@@ -933,9 +945,10 @@ class KittenCloudWidget extends InvisibleWidget {
                 } catch (error) {
                     if (error instanceof Error) {
                         error.message = `${getTaskName.apply(this, args)}失败：${error.message}`
-                    } else if (typeof error == "string") {
-                        error = JSON.stringify(error)
                     } else {
+                        if (!Array.isArray(error) && typeof error != "string") {
+                            error = JSON.stringify(error)
+                        }
                         error = [getTaskName.apply(this, args) + "失败", error]
                     }
                     this.error(error)
@@ -950,6 +963,7 @@ class KittenCloudWidget extends InvisibleWidget {
     }
 
     private error(this: this, error: unknown): void {
+        let message: string = getErrorMessage(error)
         if (error instanceof Error) {
             error.message = `${types.title}：${error.message}`
         } else if (typeof error == "string") {
@@ -958,12 +972,6 @@ class KittenCloudWidget extends InvisibleWidget {
             error = [types.title, error]
         }
         console.error(error)
-        let message
-        if (error instanceof Error) {
-            message = error.message
-        } else {
-            message = JSON.stringify(error)
-        }
         this.widgetError(message)
         this.emit("onError", message)
     }
@@ -975,9 +983,9 @@ class KittenCloudWidget extends InvisibleWidget {
         return this.connection
     }
 
-    public async connect(this: this, workID: number): Promise<void> {
+    public connect(this: this, workID: number): void {
         if (this.connection != None) {
-            await this.close()
+            this.close()
             this.warn("上一个连接未断开，已自动断开")
         }
         this.isOpened = false
@@ -995,9 +1003,13 @@ class KittenCloudWidget extends InvisibleWidget {
                 }
             }
         )
-        ;(await this.connection.onlineUserNumber).changed.connect(
-            ({ originalNumber, newNumber }: KittenCloudOnlineUserNumberChangObject): void => {
-                this.emit("onOnlineUsersNumberChanged", originalNumber, newNumber)
+        this.connection.onlineUserNumber.then(
+            (onlineUserNumber: KittenCloudOnlineUserNumber): void => {
+                onlineUserNumber.changed.connect(
+                    ({ originalNumber, newNumber }: KittenCloudOnlineUserNumberChangObject): void => {
+                        this.emit("onOnlineUsersNumberChanged", originalNumber, newNumber)
+                    }
+                )
             }
         )
         this.connection.list.getAll().then(
@@ -1051,6 +1063,7 @@ class KittenCloudWidget extends InvisibleWidget {
             this.emit("onOpen")
         })
         this.connection.errored.connect((error): void => {
+            console.log(this.isOpened)
             if (!this.isOpened) {
                 this.connection = None
             }
@@ -1061,9 +1074,10 @@ class KittenCloudWidget extends InvisibleWidget {
 
     private handleClose = (): void => {
         this.connection = None
+        this.emit("onClose")
     }
 
-    public async close(this: this): Promise<void> {
+    public close(this: this): void {
         const connection: KittenCloudFunction = this.getConnection()
         connection.close()
         connection.closed.disconnect(this.handleClose)

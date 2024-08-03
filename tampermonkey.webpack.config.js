@@ -1,17 +1,18 @@
 const path = require("path")
 const webpack = require("webpack")
+
+// @ts-ignore
 const { project } = require("./project.ts")
 
 module.exports = {
     mode: "none",
     stats: "minimal",
     entry: {
-        [project.name + "（编程猫CoCo 控件版）"]: "./src/wrapper/kitten-cloud-function-codemao-coco-widget.ts",
         ["窜改猴脚本版/" + project.name + "（窜改猴库版）"]: "./src/wrapper/tampermonkey/kitten-cloud-function-tampermonkey-library.ts",
         ["窜改猴脚本版/" + project.name + "（窜改猴用户脚本版）"]: "./src/wrapper/tampermonkey/kitten-cloud-function-tampermonkey-user-script.ts"
     },
     output: {
-        path: path.resolve(__dirname, "out"),
+        path: path.resolve(__dirname, "dist"),
         filename: "[name].js",
         environment: {
             arrowFunction: false
@@ -20,16 +21,6 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx?/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "string-replace-loader",
-                    options: {
-                        search: /WebSocket/g,
-                        replace: "Web_Socket"
-                    }
-                }
-            }, {
                 test: /\.tsx?/,
                 exclude: /node_modules/,
                 use: "babel-loader",
@@ -41,25 +32,9 @@ module.exports = {
     },
     externalsType: "commonjs",
     externals: {
-        "axios": "axios", /** 窜改猴库版需要打包进去 */
-        "diff": "diff" /** CoCo 控件版需要打包进去 */
+        "diff": "diff"
     },
     plugins: [
-        new webpack.BannerPlugin({
-            banner:[
-                "==CoCoWidget==",
-                "@name " + project.name,
-                "@author " + project.author,
-                "@version " + project.version,
-                "@license " + project.license,
-                "@website https://s-lightning.github.io/",
-                "==/CoCoWidget=="
-            ].map(line => `// ${line}\n`).join("") + "\n" +
-            "var window = this;\n",
-            raw: true,
-            test: /（编程猫CoCo 控件版）\.js/,
-            entryOnly: true
-        }),
         new webpack.BannerPlugin({
             banner:[
                 "==UserScript==",
