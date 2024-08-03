@@ -236,7 +236,7 @@ export class KittenCloudList extends KittenCloudData {
     /**
      * 添加新的项到指定位置。
      *
-     * @param index 位置索引
+     * @param index 位置索引，从 0 开始
      * @param value 添加的新的项的值
      */
     public add(this: this, index: number, value: KittenCloudListItemValue): void {
@@ -258,7 +258,7 @@ export class KittenCloudList extends KittenCloudData {
     /**
      * 移除指项。
      *
-     * @param index 位置索引
+     * @param index 位置索引，从 0 开始
      */
     public remove(index: number): void {
         this.updateManager.addUpdateCommand(new KittenCloudListRemoveCommand(
@@ -290,7 +290,7 @@ export class KittenCloudList extends KittenCloudData {
     /**
      * 替换指定项。
      *
-     * @param index 位置索引
+     * @param index 位置索引，从 0 开始
      * @param value 新的值
      */
     public replace(index: number, value: KittenCloudListItemValue): void {
@@ -334,7 +334,7 @@ export class KittenCloudList extends KittenCloudData {
     /**
      * 获取指定位置的项。
      *
-     * @param index 位置索引
+     * @param index 位置索引，从 0 开始
      * @returns 指定位置的项，如果索引越界则返回 `None`
      */
     public get(this: this, index: number): KittenCloudListItemValue | None {

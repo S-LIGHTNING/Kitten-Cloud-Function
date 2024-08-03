@@ -63,7 +63,7 @@
 
 #### 2.添加依赖库
 
-在你的脚本元属性加入：`// @require https://update.greasyfork.org/scripts/502406/1420791/%E7%BC%96%E7%A8%8B%E7%8C%AB%E6%BA%90%E7%A0%81%E4%BA%91%E5%8A%9F%E8%83%BD.js`。
+在你的脚本元属性加入：<span style="word-wrap: break-word;">`// @require https://update.greasyfork.org/scripts/502406/1420791/编程猫源码云功能.js`</span>。
 
 #### 3.检测用户登陆状态
 
@@ -131,7 +131,7 @@ for (const item of rankList) {
 let connection = new KittenCloudFunction(new CodemaoWork({ id: 114514 }))
 let list = await connection.list.get("云列表")
 
-// 获取云列表第 1 项
+// 获取云列表第 1 项，列表索引从 0 开始
 console.log(list.get(1))
 
 // 修改云列表第 1 项
@@ -168,10 +168,18 @@ list.remove(1)
 
 ```JavaScript
 let connection = new KittenCloudFunction(new CodemaoWork({ id: 114514 }))
-let variable = await connection.publicVariable.get("云变量") // 假设该变量初始值为 0
-console.log(variable.get())                                 // 此处应输出 0
-variable.set(666)                                           // 修改变量的值，要等到该操作同步到云端并收到来自服务器的反馈后才能生效
-console.log(variable.get())                                 // 此处仍然输出 0，因为对该变量的修改操作还没有同步到云端
+
+// 假设该变量初始值为 0
+let variable = await connection.publicVariable.get("云变量")
+
+// 此处应输出 0
+console.log(variable.get())
+
+// 修改变量的值，要等到该操作同步到云端并收到来自服务器的反馈后才能生效
+variable.set(666)
+
+// 此处仍然输出 0，因为对该变量的修改操作还没有同步到云端
+console.log(variable.get())
 ```
 
 开启本地预更新后，本地执行数据更新操作时，会假定该操作同步到云端之前没有其它用户对该数据进行操作，并基于此提前更新本地的数据，如果假定不成立，则会修正本地数据。具体而言，本地执行数据更新操作时，会立即更新本地的数据，如果在当前操作被同步到云端之前收到了来自服务器的反馈的其它更新数据，则会撤销本地对数据的更改，并执行来自云端的更改，最后再执行本地对数据的更改。
