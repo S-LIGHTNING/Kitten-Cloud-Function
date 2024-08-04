@@ -495,9 +495,7 @@ export class CodemaoUserInfo {
      */
     constructor(info: CodemaoUserInfoObject) {
         if (Object.keys(info).length == 0) {
-            this.set({
-                authorization: None
-            })
+            this._authorization = Promise.resolve(None)
         } else {
             this.set(info)
         }

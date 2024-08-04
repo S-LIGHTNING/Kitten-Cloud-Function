@@ -26,10 +26,11 @@ enum ValueType {
 type OriginalTypesObject = {
     type: string,
     title: string,
-    author: string,
+    author?: string,
     icon: string,
-	version: string,
-    license: string,
+	version?: string,
+    license?: string,
+    docs?: string,
     isInvisibleWidget: boolean,
     isGlobalWidget: boolean,
     properties: [],
@@ -93,6 +94,7 @@ const types: OriginalTypesObject = {
     icon: "icon-widget-cloud-room",
 	version: project.version,
     license: project.license,
+    docs: project.docs,
     isInvisibleWidget: true,
     isGlobalWidget: true,
     properties: [],
@@ -639,8 +641,8 @@ const types: OriginalTypesObject = {
                 }
             ]
         }, {
-            key: "onPublicVariableChanged",
-            label: "云变量值改变",
+            key: "onPublicVariableValueChanged",
+            label: "公有云变量值改变",
             params: [
                 {
                     key: "name",
@@ -997,7 +999,7 @@ class KittenCloudWidget extends InvisibleWidget {
                 for (const variable of variableArray) {
                     variable.changed.connect(
                         ({ source, originalValue, newValue }: KittenCloudVariableChangeMessageObject): void => {
-                            this.emit("onPublicVariableChanged", variable.name, source, originalValue, newValue)
+                            this.emit("onPublicVariableValueChanged", variable.name, source.name, originalValue, newValue)
                         }
                     )
                 }

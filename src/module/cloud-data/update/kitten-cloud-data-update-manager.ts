@@ -143,7 +143,7 @@ export class KittenCloudDataUpdateManager {
                             command.execute()
                             this.uploadingUpdateCommand.execute()
                             this.uploadingUpdateCommand.removeBackIneffective()
-                            this.unuploadedUpdateCommand.revoke()
+                            this.unuploadedUpdateCommand.execute()
                             this.unuploadedUpdateCommand.removeBackIneffective()
                         } else {
                             command.execute()
