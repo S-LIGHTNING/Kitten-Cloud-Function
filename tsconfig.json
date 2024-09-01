@@ -11,8 +11,9 @@
         "noPropertyAccessFromIndexSignature": true,
         "noUncheckedIndexedAccess": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true
+        "noUnusedParameters": true,
+        "resolveJsonModule": true
     },
-    "include": ["src/**/*"],
+    "include": ["**/*"],
     "exclude": ["node_modules"]
 }

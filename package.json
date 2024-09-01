@@ -1,9 +1,48 @@
 {
+    "name": "kitten-cloud-function",
+    "version": "1.1.0-beta",
+    "description": "用于编程猫源码云功能（云变量、云列表等）的客户端工具",
+    "main": "index.js",
+    "types": "index.ts",
+    "directories": {
+        "doc": "docs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/s-lightning/Kitten-Cloud-Function.git"
+    },
+    "author": "SLIGHTNING",
+    "license": "AGPL-3.0",
+    "keywords": [
+        "源码云功能",
+        "kitten-cloud",
+        "kitten-cloud-var",
+        "kitten-cloud-variable",
+        "kitten-cloud-list",
+        "cloud-var",
+        "cloud-variable",
+        "cloud-list",
+        "云变量",
+        "云列表",
+        "kitten",
+        "源码编辑器",
+        "codemao",
+        "bcm",
+        "编程猫",
+        "菠菜面",
+        "你猫",
+        "毛毡"
+    ],
+    "bugs": {
+        "url": "https://github.com/s-lightning/Kitten-Cloud-Function/issues"
+    },
+    "homepage": "https://s-lightning.github.io/Kitten-Cloud-Function/",
     "scripts": {
         "build--coco-widget": "webpack --config coco-widget.webpack.config.js",
         "build--tampermonkey": "webpack --config tampermonkey.webpack.config.js",
         "build": "npm run build--coco-widget && npm run build--tampermonkey",
-        "make-docs": "typedoc --sort static-first --sort source-order --plugin typedoc-material-theme"
+        "make-docs": "typedoc --sort static-first --sort source-order --plugin typedoc-material-theme",
+        "*": "tsc && npm run build && npm run make-docs"
     },
     "dependencies": {
         "@types/diff": "^5.2.1",
