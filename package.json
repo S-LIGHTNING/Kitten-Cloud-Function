@@ -6,19 +6,20 @@
         "make-docs": "typedoc --sort static-first --sort source-order --plugin typedoc-material-theme"
     },
     "dependencies": {
-        "@babel/core": "^7.24.6",
-        "@babel/plugin-transform-runtime": "^7.24.6",
-        "@babel/preset-env": "^7.24.6",
-        "@babel/preset-typescript": "^7.24.6",
         "@types/diff": "^5.2.1",
         "axios": "^1.7.2",
+        "diff": "^5.2.0"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.25.2",
+        "@babel/plugin-transform-runtime": "^7.24.7",
+        "@babel/preset-env": "^7.25.3",
+        "@babel/preset-typescript": "^7.24.7",
         "babel-loader": "^9.1.3",
-        "diff": "^5.2.0",
         "string-replace-loader": "^3.1.0",
-        "string-replace-webpack-plugin": "^0.1.3",
-        "typedoc": "^0.26.5",
+        "typedoc": "^0.26.6",
         "typedoc-material-theme": "^1.1.0",
-        "webpack": "^5.91.0",
+        "webpack": "^5.93.0",
         "webpack-cli": "^5.1.4"
     }
 }
