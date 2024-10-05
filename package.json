@@ -40,15 +40,16 @@
     "scripts": {
         "build--coco-widget": "webpack --config coco-widget.webpack.config.js",
         "build--tampermonkey": "webpack --config tampermonkey.webpack.config.js",
-        "build": "npm run build--coco-widget && npm run build--tampermonkey",
+        "build--package": "tsc",
+        "build": "npm run build--coco-widget && npm run build--tampermonkey && npm run build--package",
         "make-docs": "typedoc --sort static-first --sort source-order --plugin typedoc-material-theme",
-        "*": "tsc && npm run build && npm run make-docs"
+        "*": "npm run build && npm run make-docs"
     },
     "dependencies": {
         "@types/diff": "^5.2.1",
         "axios": "^1.7.2",
         "diff": "^5.2.0",
-        "slightning-coco-widget": "^1.0.1-alpha"
+        "slightning-coco-widget": "^1.0.1-alpha.2"
     },
     "devDependencies": {
         "@babel/core": "^7.25.2",
