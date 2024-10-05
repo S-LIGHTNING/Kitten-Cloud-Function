@@ -1,5 +1,6 @@
 const path = require("path")
 const webpack = require("webpack")
+const SCW = require("slightning-coco-widget--webpack")
 
 // @ts-ignore
 const { project } = require("./project.ts")
@@ -20,47 +21,25 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(j|t)sx?/,
-                exclude: /node_modules/,
+                test: /\.(j|t)sx?$/,
                 use: {
-                    loader: "string-replace-loader",
+                    loader: "babel-loader",
                     options: {
-                        search: /WebSocket/g,
-                        replace: "Web_Socket"
+                        cacheDirectory: true,
+                        cacheCompression: false,
+                        presets: ["@babel/preset-typescript"]
                     }
-                }
-            }, {
-                test: /\.(j|t)sx?/,
-                use: {
-                    loader: "string-replace-loader",
-                    options: {
-                        search: /XMLHttpRequest/g,
-                        replace: "XML_Http_Request"
-                    }
-                }
-            }, {
-                test: /\.(j|t)sx?/,
-                use: {
-                    loader: "string-replace-loader",
-                    options: {
-                        search: /(?<!\/)fetch/g,
-                        replace: "fe_tch"
-                    }
-                }
-            }, {
-                test: /\.tsx?/,
-                exclude: /node_modules/,
-                use: "babel-loader",
-            }
+                },
+            }, ...SCW.loaders
         ]
     },
     resolve: {
-        extensions: [".ts", ".js"]
+        extensions: [".ts", ".tsx", ".js", ".jsx"]
     },
-    externalsType: "commonjs",
-    externals: {},
+    externalsType: SCW.externalsType,
+    externals: SCW.externals,
     plugins: [
-        new webpack.BannerPlugin({
+        ...SCW.plugins, new webpack.BannerPlugin({
             banner:[
                 "==CoCoWidget==",
                 "@name " + project.name,
@@ -69,17 +48,7 @@ module.exports = {
                 "@license " + project.license,
                 "@website https://s-lightning.github.io/",
                 "==/CoCoWidget=="
-            ].map(line => `// ${line}\n`).join("") + "\n" +
-            [
-                function getGlobal(name) {
-                    return new Function("return " + name.replace(/_/g, ""))()
-                },
-                `var window = getGlobal("window");`,
-                `var document = getGlobal("document");`,
-                `var Web_Socket = getGlobal("Web_Socket");`,
-                `var XML_Http_Request = getGlobal("XML_Http_Request");`,
-                `var fe_tch = getGlobal("fe_tch");`
-            ].join("\n"),
+            ].map(line => `// ${line}\n`).join(""),
             raw: true,
             test: /（编程猫CoCo 控件版）\.js/,
             entryOnly: true

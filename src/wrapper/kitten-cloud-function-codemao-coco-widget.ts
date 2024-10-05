@@ -1,6 +1,6 @@
 import { KittenCloudFunction } from "../kitten-cloud-function"
 import { CodemaoWork } from "../codemao/work/codemao-work"
-import { merge, None } from "../utils/other"
+import { None } from "../utils/other"
 import { KittenCloudVariable, KittenCloudVariableChangeMessage as KittenCloudVariableChangeMessageObject, KittenCloudVariableValue } from "../module/cloud-data/kitten-cloud-variable"
 import { KittenCloudData } from "../module/cloud-data/kitten-cloud-data"
 import { CodemaoUser } from "../codemao/user/codemao-user"
@@ -11,83 +11,13 @@ import { KittenCloudOnlineUserNumber, KittenCloudOnlineUserNumberChangObject } f
 import { KittenCloudPrivateVariableGroup } from "../module/cloud-data/group/kitten-cloud-private-variable-group"
 import { KittenCloudPublicVariableGroup } from "../module/cloud-data/group/kitten-cloud-public-variable-group"
 import { KittenCloudListGroup } from "../module/cloud-data/group/kitten-cloud-list-group"
+import { Color, InvisibleWidget, SLIGHTNINGExport, SLIGHTNINGTypesObject, ValueType } from "slightning-coco-widget"
 const { project } = require("../../project")
-
-enum Color {
-    BLACK = "#000000", PURPLE = "#C571D8", BROWN = "#D67B18",
-    RED = "#DB6656", YELLOW = "#C7C100"
-}
-
-enum ValueType {
-    NUMBER = "number", STRING = "string", BOOLEAN = "boolean",
-    ARRAY = "array", OBJECT = "object"
-}
-
-type OriginalTypesObject = {
-    type: string,
-    title: string,
-    author?: string,
-    icon: string,
-	version?: string,
-    license?: string,
-    docs?: string,
-    isInvisibleWidget: boolean,
-    isGlobalWidget: boolean,
-    properties: [],
-    methods: (MethodGroupObject | MethodObject)[],
-    events: EventObject[]
-}
-
-type MethodGroupObject = {
-    key: "group",
-    label?:  string,
-    color?: Color,
-    callMethodLabel?: boolean
-}
-
-type MethodObject = {
-    key: Exclude<string, "group">,
-    label?: string,
-    params: MethodParamObject[],
-    valueType?: ValueType | ValueType[]
-    blockOptions?: {
-        color?: Color,
-        callMethodLabel?: boolean,
-        line?: string,
-        space?: number
-    }
-}
-
-type MethodParamObject = {
-    key: string,
-    label?: string,
-    labelAfter?: string,
-} & ({
-    valueType: ValueType | ValueType[],
-    defaultValue?: unknown
-} | {
-    dropdown: {
-        label: string,
-        value: unknown
-    }[]
-})
-
-type EventObject = {
-    key: string,
-    label: string,
-    params: EventParamObject[]
-}
-
-type EventParamObject = {
-    key: string,
-    label: string,
-    valueType: ValueType | ValueType[],
-}
 
 const VariableValueType: ValueType[] = [ ValueType.NUMBER, ValueType.STRING ]
 const ListItemValueType: ValueType[] = [ ValueType.NUMBER, ValueType.STRING ]
 
-const types: OriginalTypesObject = {
+const types: SLIGHTNINGTypesObject = {
     type: "SLIGHTNING_KITTEN_CLOUD_FUNCTION_WIDGET",
     title: project.name,
     author: project.author,
@@ -100,8 +30,10 @@ const types: OriginalTypesObject = {
     properties: [],
     methods: [
         {
-            key: "group",
-            label:  "连接",
+            line: "global",
+            callMethodLabel: false
+        }, {
+            line:  "连接",
             color: Color.PURPLE
         }, {
             key: "connect",
@@ -169,8 +101,7 @@ const types: OriginalTypesObject = {
                 }
             ]
         }, {
-            key: "group",
-            label:  "云变量",
+            line:  "云变量",
             color: Color.BROWN
         }, {
             key: "getPrivateVariableList",
@@ -302,15 +233,14 @@ const types: OriginalTypesObject = {
                     key: "order",
                     labelAfter: "排行榜",
                     dropdown: [
-                        { label: "逆序", value: -1 },
-                        { label: "正序", value: 1 }
+                        { label: "逆序", value: "-1" },
+                        { label: "正序", value: "1" }
                     ]
                 }
             ],
             valueType: ValueType.ARRAY
         }, {
-            key: "group",
-            label: "用户信息",
+            line: "用户信息",
             color: Color.RED
         }, {
             key: "isUserLogged",
@@ -357,8 +287,7 @@ const types: OriginalTypesObject = {
             params: [],
             valueType: ValueType.NUMBER
         }, {
-            key: "group",
-            label: "云列表",
+            line: "云列表",
             color: Color.YELLOW
         }, {
             key: "getListList",
@@ -844,45 +773,6 @@ const types: OriginalTypesObject = {
     ]
 }
 
-;(function (): void {
-    const defaultGroup: Required<MethodGroupObject> = {
-        key: "group",
-        label:  "未分类",
-        color: Color.BLACK,
-        callMethodLabel: false
-    }
-    let group: Required<MethodGroupObject> = defaultGroup
-    const original: (MethodGroupObject | MethodObject)[] = types.methods
-    types.methods = []
-    let last: MethodObject | None = None, isFirst = true
-    for (const method of original) {
-        if (method.key == "group") {
-            if (last != None) {
-                last.blockOptions!.space = 40
-            }
-            group = merge(method as MethodGroupObject, defaultGroup) as Required<MethodGroupObject>
-            isFirst = true
-            continue
-        }
-        merge<Partial<MethodObject>>(method, {
-            blockOptions: {
-                color: group.color,
-                callMethodLabel: group.callMethodLabel
-            }
-        })
-        if (isFirst) {
-            isFirst = false
-            merge<Partial<MethodObject>>(method, {
-                blockOptions: {
-                    line: group.label
-                }
-            })
-        }
-        last = method as MethodObject
-        types.methods.push(method)
-    }
-})()
-
 const userMap = new Map<number, CodemaoUser>()
 userMap.set(0, KittenCloudFunction.user)
 
@@ -898,67 +788,10 @@ function getErrorMessage(error: unknown): string {
     }
 }
 
-declare class InvisibleWidget {
-    constructor(props: {})
-    public widgetLog(message: string): void
-    public widgetWarn(message: string): void
-    public widgetError(message: string): void
-    public emit(event: string, ...args: unknown[]): void
-}
-
-class KittenCloudWidget extends InvisibleWidget {
-
-    [key: string]: unknown
+class KittenCloudFunctionWidget extends InvisibleWidget {
 
     private connection: KittenCloudFunction | None
     private isOpened: boolean = false
-
-    public constructor(props: {}) {
-        super(props)
-        for (const method of types.methods as MethodObject[]) {
-            let original: unknown = this[method.key]
-            if (original == null || !(original instanceof Function)) {
-                original = function (): never {
-                    throw new Error("该功能暂未实现")
-                }
-            }
-            let getTaskName = function (...args: unknown[]): string {
-                let taskName: string = method.label || (method.valueType == ValueType.BOOLEAN ? "判断" : "获取")
-                for (let i: number = 0; i < method.params.length; i++) {
-                    const param = method.params[i]!
-                    if ("label" in param) {
-                        taskName += param.label
-                    }
-                    if ("dropdown" in param) {
-                        const item = param.dropdown?.find(item => item.value == args[i])
-                        taskName += ` ${item == null ? args[i] : item.label} `
-                    } else {
-                        taskName += ` ${JSON.stringify(args[i])} `
-                    }
-                    if ("labelAfter" in param) {
-                        taskName += param.labelAfter
-                    }
-                }
-                return taskName
-            }
-            this[method.key] = async function (...args: unknown[]): Promise<unknown> {
-                try {
-                    return await (original as Function).apply(this, args)
-                } catch (error) {
-                    if (error instanceof Error) {
-                        error.message = `${getTaskName.apply(this, args)}失败：${error.message}`
-                    } else {
-                        if (!Array.isArray(error) && typeof error != "string") {
-                            error = JSON.stringify(error)
-                        }
-                        error = [getTaskName.apply(this, args) + "失败", error]
-                    }
-                    this.error(error)
-                }
-                return
-            }
-        }
-    }
 
     private warn(this: this, message: string): void {
         this.widgetWarn(message)
@@ -1494,5 +1327,4 @@ class KittenCloudWidget extends InvisibleWidget {
     }
 }
 
-exports.types = types
-exports.widget = KittenCloudWidget
+SLIGHTNINGExport(types, KittenCloudFunctionWidget)

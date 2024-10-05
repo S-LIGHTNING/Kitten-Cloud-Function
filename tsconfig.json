@@ -1,6 +1,10 @@
 {
     "compilerOptions": {
+        "outDir": "dist/src",
+        "declaration": true,
+        "declarationDir": "dist/types",
         "lib": ["ESNext", "DOM"],
+        "skipLibCheck": true,
         "strict": true,
         "allowUnreachableCode": false,
         "allowUnusedLabels": false,
