@@ -13,7 +13,7 @@ import { KittenCloudPublicVariableGroup } from "../module/cloud-data/group/kitte
 import { KittenCloudListGroup } from "../module/cloud-data/group/kitten-cloud-list-group"
 import { Color, InvisibleWidget, SLIGHTNINGExport, SLIGHTNINGTypesObject, SLIGHTNINGWidgetSuper, ValueType } from "slightning-coco-widget"
 import { KittenCloudAutoReconnectIntervalTime, KittenCloudCacheTime, KittenCloudFunctionConfigLayer, KittenCloudLocalPreupdate, KittenCloudUploadIntervalTime } from "./kitten-cloud-function-package"
-const { project } = require("../../project")
+import { project } from "../../project"
 
 declare const KITTEN_CLOUD_FUNCTION_DEVELOP: boolean
 declare const KITTEN_CLOUD_FUNCTION_ALLOW: {

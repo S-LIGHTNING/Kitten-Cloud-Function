@@ -40,7 +40,7 @@ module.exports = function (env, argv) {
     }
     const comments = [
         "==CoCoWidget==",
-        "@name " + project.name + editionName,
+        "@name " + project.name + "（CoCo 更新适配版.1）" + editionName,
         "@author " + project.author,
         "@version " + project.version,
         "@license " + project.license,
