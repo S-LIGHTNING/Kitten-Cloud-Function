@@ -191,7 +191,7 @@ export class KittenCloudFunction extends KittenCloudFunctionConfigLayer {
         this.list = new KittenCloudListGroup(this)
         if (__importDiff == None) {
             __importDiff = (async (): Promise<void> => {
-                __diff = await import("diff")
+                __diff = await import(/* webpackMode: "eager" */"diff")
             })()
         }
     }

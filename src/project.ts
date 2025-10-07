@@ -1,6 +1,6 @@
-const packageInfo = require("./package.json")
+import packageInfo from "../package.json"
 
-exports.project = {
+export const project = {
     title: packageInfo.name,
     name: "源码云功能",
     description: packageInfo.description,

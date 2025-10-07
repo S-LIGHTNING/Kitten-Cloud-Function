@@ -2,9 +2,10 @@
     "compilerOptions": {
         "outDir": "dist",
         "target": "ESNext",
+        "importHelpers": true,
         "declaration": true,
         "declarationDir": "dist/types",
-        "module": "ESNext",
+        "module": "preserve",
         "moduleResolution": "bundler",
         "esModuleInterop": true,
         "resolveJsonModule": true,
@@ -23,5 +24,5 @@
         "noUnusedParameters": true,
         "experimentalDecorators": true
     },
-    "include": ["src/*", "src/**/*", "project.js"]
+    "include": ["src/**/*"]
 }

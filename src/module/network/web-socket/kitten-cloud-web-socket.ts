@@ -98,7 +98,7 @@ export class KittenCloudWebSocket {
             return new WebSocketProxy(await CodemaoWebSocket(argument))
         } else if (argument instanceof CodemaoWork) {
             const url: string = await (async (): Promise<string> => {
-                const scheme: "wss" | "ws" = typeof global == "object" || window.location.protocol != "http:" ? "wss" : "ws"
+                const scheme: "wss" | "ws" = typeof location != "object" || location.protocol != "http:" ? "wss" : "ws"
                 const host: string = ["socketcv", "codemao", "cn"].join(".")
                 const port = 9096
                 const path = "/cloudstorage/"
@@ -223,6 +223,9 @@ export class KittenCloudWebSocket {
     private handleClose(this: this, event: CloseEvent): void {
         this.disconnected.emit()
         if (!this.isOpened || !this.autoReconnect) {
+            if (event.code != 1000) {
+                this.errored.emit(event.reason)
+            }
             this.closed.emit(event)
             return
         } else {

@@ -10,9 +10,9 @@ export class CodemaoUser {
      * 设置身份，仅在 Node 中可用。
      */
     public static async setAuthorization(authorization: string): Promise<void> {
-        const path: typeof import("path") = await import("path")
-        const { mkdir, writeFile } = (await import("fs")).promises
-        const appDirs: typeof import("appdirsjs").default = (await import("appdirsjs")).default
+        const path: typeof import("path") = await import(/* webpackMode: "eager" */"path")
+        const { mkdir, writeFile } = (await import(/* webpackMode: "eager" */"fs")).promises
+        const appDirs: typeof import("appdirsjs").default = (await import(/* webpackMode: "eager" */"appdirsjs")).default
         const configPath: string = appDirs({ appName: "SLIGHTNING/Codemao-Community" }).config
         await mkdir(configPath, { recursive: true })
         await writeFile(path.resolve(configPath, "authorization.txt"), authorization)

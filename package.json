@@ -1,13 +1,19 @@
 {
     "name": "kitten-cloud-function",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "用于编程猫源码云功能（云变量、云列表等）的客户端工具",
-    "main": "./dist/cjs/src/wrapper/kitten-cloud-function-npm-package.js",
-    "module": "./dist/esm/src/wrapper/kitten-cloud-function-npm-package.js",
-    "types": "./dist/types/src/wrapper/kitten-cloud-function-npm-package.d.ts",
+    "main": "./dist/cjs/src/wrapper/kitten-cloud-function-package.js",
+    "module": "./dist/esm/src/wrapper/kitten-cloud-function-package.js",
+    "types": "./dist/types/src/wrapper/kitten-cloud-function-package.d.ts",
+    "exports": {
+        "browser": "./dist/esm/src/wrapper/kitten-cloud-function-package.js",
+        "require": "./dist/cjs/src/wrapper/kitten-cloud-function-package.js",
+        "types": "./dist/types/src/wrapper/kitten-cloud-function-package.d.ts",
+        "default": "./dist/kitten-cloud-function-package-bundle.js"
+    },
     "bin": {
-        "Kitten-Cloud-Function": "./dist/cjs/src/wrapper/kitten-cloud-function-command-line-interface.js",
-        "kcf": "./dist/cjs/src/wrapper/kitten-cloud-function-command-line-interface.js"
+        "Kitten-Cloud-Function": "./dist/kitten-cloud-function-command-line-interface.mjs",
+        "kcf": "./dist/kitten-cloud-function-command-line-interface.mjs"
     },
     "directories": {
         "doc": "docs"
@@ -39,54 +45,66 @@
         "源码编辑器",
         "codemao",
         "bcm",
-        "编程猫",
-        "菠菜面",
-        "你猫",
-        "毛毡"
+        "编程猫"
     ],
     "bugs": {
         "url": "https://github.com/s-lightning/Kitten-Cloud-Function/issues"
     },
     "homepage": "https://github.com/S-LIGHTNING/Kitten-Cloud-Function",
     "scripts": {
-        "dev:coco-widget": "webpack --config coco-widget.webpack.config.js --env noModificationRestriction --env develop --watch",
-        "dev:package": "tsc --outDir dist/cjs --module commonjs --moduleResolution node --watch",
-        "build:coco-widget": "webpack --config coco-widget.webpack.config.js",
-        "build:browser": "webpack --config browser.webpack.config.js",
-        "build:user-script": "webpack --config user-script.webpack.config.js",
-        "build:package": "tsc --outDir dist/cjs --target ES2017 --module commonjs --moduleResolution node && tsc --outDir dist/esm --target ES2017",
+        "start:coco-widget": "webpack serve --env mode=development --config webpack.widget.js",
+        "watch:coco-widget": "webpack --watch --env mode=development --config webpack.widget.js",
+        "watch:cli": "webpack --watch --config webpack.cli.js",
+        "watch:package": "tsc --outDir dist/cjs --module commonjs --moduleResolution node --watch",
+        "build:widget": "npm run build:coco-widget && npm run build:creation-project-1-widget && npm run build:creation-project-2-widget",
+        "build:coco-widget": "scw-build coco --config webpack.widget.js",
+        "build:creation-project-1-widget": "scw-build creationproject1 --env platform=\"Creation Project 1\" --config webpack.widget.js",
+        "build:creation-project-2-widget": "scw-build creationproject2 --env platform=\"Creation Project 2\" --config webpack.widget.js",
+        "build:browser": "webpack --config webpack.browser.js",
+        "build:cli": "webpack --config webpack.cli.js",
+        "build:user-script": "webpack --config webpack.user-script.js",
+        "build:package": "tsc --outDir dist/cjs --target ES2017 --module commonjs --moduleResolution node && tsc --outDir dist/esm && webpack --config webpack.package.js",
         "build:docs": "typedoc --sort static-first --sort source-order",
-        "build": "npm run build:coco-widget && npm run build:browser && npm run build:package && npm run build:docs"
+        "build": "tsc --noEmit && npm run build:widget && npm run build:cli && npm run build:browser && npm run build:package && npm run build:docs"
     },
     "dependencies": {
-        "@johnls/readline-password": "^1.1.0",
+        "@johnls/readline-password": "^1.0.0",
         "@slightning/anything-to-string": "^1.0.0",
-        "@ungap/promise-any": "^1.1.1",
-        "appdirsjs": "^1.2.7",
-        "axios": "^1.7.2",
-        "chalk": "^5.4.1",
-        "commander": "^12.1.0",
-        "crypto-js": "^4.2.0",
-        "diff": "^5.2.0",
-        "slightning-coco-widget": "1.0.1-alpha.13",
-        "websocket": "^1.0.35"
+        "@ungap/promise-any": "^1.0.0",
+        "appdirsjs": "^1.0.0",
+        "axios": "^1.0.0",
+        "chalk": "^5.0.0",
+        "commander": "^12.0.0",
+        "crypto-js": "^4.0.0",
+        "diff": "^5.0.0",
+        "tslib": "^2.0.0",
+        "websocket": "^1.0.0"
     },
     "devDependencies": {
         "@babel/core": "^7.0.0",
         "@babel/preset-env": "^7.0.0",
         "@types/diff": "^7.0.0",
         "babel-loader": "^9.0.0",
-        "fork-ts-checker-webpack-plugin": "^9.0.2",
-        "slightning-coco-widget--webpack": "1.0.2-alpha.5",
+        "obfuscator-loader": "^1.1.2",
+        "slightning-coco-widget": "^2.10.2",
+        "slightning-coco-widget--webpack": "^2.5.2",
+        "string-replace-loader": "^3.2.0",
         "terser-webpack-plugin": "^5.0.0",
         "ts-loader": "^9.0.0",
-        "typedoc": "^0.26.0",
+        "typedoc": "~0.26.0",
         "typedoc-material-theme": "^1.0.0",
         "typedoc-plugin-mermaid": "^1.0.0",
         "typescript": "^5.0.0",
-        "webpack": "^5.0.0",
-        "webpack-cli": "^5.0.0"
+        "webpack": "~5.102.0",
+        "webpack-cli": "^5.0.0",
+        "webpack-dev-server": "^5.0.0",
+        "webpack-merge": "^6.0.0"
     },
+    "overrides": {
+        "typescript": "$typescript",
+        "javascript-obfuscator": "^4.0.0"
+    },
+    "sideEffects": false,
     "engines": {
         "node": ">=14"
     },

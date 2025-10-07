@@ -1,17 +1,16 @@
-#!/usr/bin/env node
 import fs from "fs"
 import path from "path"
 import { Command } from "commander"
 import axios from "axios"
 import chalk, { ChalkInstance } from "chalk"
 import { ArrayChange, Change, diffArrays } from "diff"
+import * as stringify from "@slightning/anything-to-string"
 
 import { CodemaoUser, CodemaoUserInfo, KittenCloudFunction, KittenCloudVariable, KittenCloudList, KittenCloudData, CodemaoWork, CodemaoWorkEditor, KittenCloudPrivateVariable, KittenCloudPublicVariable, KittenCloudListItemValue, KittenCloudOnlineUserNumberChangObject, KittenCloudVariableChangeMessageObject, KittenCloudListPushMessageObject, KittenCloudListUnshiftMessageObject, KittenCloudListAddMessageObject, KittenCloudListPopMessageObject, KittenCloudListRemoveMessageObject, KittenCloudListEmptyMessageObject, KittenCloudListReplaceLastMessageObject, KittenCloudListReplaceMessageObject } from "./kitten-cloud-function-package"
 import { None } from "../utils/other"
 import { dirs } from "../utils/app-dirs"
-import * as stringify from "@slightning/anything-to-string"
 import { CodemaoUserBadge } from "../codemao/user/codemao-user-badge"
-const { project } = require("../../project")
+import { project } from "../project"
 
 const program = new Command()
 
@@ -185,7 +184,7 @@ async function connect(): Promise<KittenCloudFunction> {
     connection.opened.connect((): void => {
         opened = true
     })
-    connection.errored.connect((error: unknown): void => {
+    connection.errored.connect((error): void => {
         if (!errorExit && opened) {
             console.error(chalk.red.bold(anythingToString(error)))
         }
@@ -223,7 +222,7 @@ program
     .action((): void => {
         tryRun(async (): Promise<void> => {
             // @ts-ignore
-            const readline = (await import("@johnls/readline-password")).default.createInstance(process.stdin, process.stdout)
+            const readline = (await import(/* webpackMode: "eager" */"@johnls/readline-password")).default.createInstance(process.stdin, process.stdout)
             const authorization: string = await readline.passwordAsync(language.pleaseTypeInAuthorization)
             process.stdin.unref()
             CodemaoUser.setAuthorization(authorization)
@@ -685,42 +684,50 @@ function getDiff(oldStr: string, newStr: string): Change[] {
 }
 
 function diffLog(
-    originalValue: string,
-    newValue: string,
+    originalValue: string | number,
+    newValue: string | number,
     showDiff: boolean,
     showOriginalValue: boolean
 ): void {
     if (showDiff) {
-        const diff: Change[] = getDiff(String(originalValue), String(newValue))
-        if (showOriginalValue) {
-            console.log("  - " + diff.map((value: Change): string => {
-                if (value.added) {
-                    return ""
-                } else if (value.removed) {
-                    return chalk.bgRed(value.value)
-                } else {
-                    return value.value
-                }
-            }).join(""))
-            console.log("  + " + diff.map((value: Change): string => {
-                if (value.added) {
-                    return chalk.bgGreen(value.value)
-                } else if (value.removed) {
-                    return ""
-                } else {
-                    return value.value
-                }
-            }).join(""))
+        if (typeof originalValue == "number" && typeof newValue == "number") {
+            if (newValue >= originalValue) {
+                console.log(`    ${originalValue} => ${newValue} ${chalk.bgGreen(`(+${newValue - originalValue})`)}`)
+            } else {
+                console.log(`    ${originalValue} => ${newValue} ${chalk.bgRed(`(${newValue - originalValue})`)}`)
+            }
         } else {
-            console.log("    " + diff.map((value: Change): string => {
-                if (value.added) {
-                    return chalk.bgGreen(value.value)
-                } else if (value.removed) {
-                    return chalk.bgRed(value.value)
-                } else {
-                    return value.value
-                }
-            }).join(""))
+            const diff: Change[] = getDiff(String(originalValue), String(newValue))
+            if (showOriginalValue) {
+                console.log("  - " + diff.map((value: Change): string => {
+                    if (value.added) {
+                        return ""
+                    } else if (value.removed) {
+                        return chalk.bgRed(value.value)
+                    } else {
+                        return value.value
+                    }
+                }).join(""))
+                console.log("  + " + diff.map((value: Change): string => {
+                    if (value.added) {
+                        return chalk.bgGreen(value.value)
+                    } else if (value.removed) {
+                        return ""
+                    } else {
+                        return value.value
+                    }
+                }).join(""))
+            } else {
+                console.log("    " + diff.map((value: Change): string => {
+                    if (value.added) {
+                        return chalk.bgGreen(value.value)
+                    } else if (value.removed) {
+                        return chalk.bgRed(value.value)
+                    } else {
+                        return value.value
+                    }
+                }).join(""))
+            }
         }
     } else {
         if (showOriginalValue) {
@@ -754,19 +761,8 @@ const watchCommand: Command = program
                 (await connection.onlineUserNumber).changed.connect((
                         { originalNumber, newNumber }: KittenCloudOnlineUserNumberChangObject
                     ): void => {
-                        if (showOriginalValue) {
-                            if (showDiff) {
-                                if (newNumber >= originalNumber) {
-                                    console.log(`在线用户数改变：${originalNumber} => ${newNumber} ${chalk.bgGreen(`(+${newNumber - originalNumber})`)}`)
-                                } else {
-                                    console.log(`在线用户数改变：${originalNumber} => ${newNumber} ${chalk.bgRed(`(${newNumber - originalNumber})`)}`)
-                                }
-                            } else {
-                                console.log(`在线用户数改变：${originalNumber} => ${newNumber}`)
-                            }
-                        } else {
-                            console.log(`在线用户数改变：${originalNumber}`)
-                        }
+                        console.log("在线用户数改变：")
+                        diffLog(originalNumber, newNumber, showDiff, showOriginalValue)
                     }
                 )
             }
@@ -782,7 +778,7 @@ const watchCommand: Command = program
                             { originalValue, newValue }: KittenCloudVariableChangeMessageObject
                         ): void => {
                             console.log(`云变量 ${chalk.green(data.name)} 改变：`)
-                            diffLog(String(originalValue), String(newValue), showDiff, showOriginalValue)
+                            diffLog(originalValue, newValue, showDiff, showOriginalValue)
                         }
                     )
                 } else if (data instanceof KittenCloudList) {
@@ -866,14 +862,14 @@ const watchCommand: Command = program
                     data.replacedLast.connect((
                         { originalItem, newItem }: KittenCloudListReplaceLastMessageObject
                     ): void => {
-                        console.log(`云列表 ${chalk.green(data.name)} 替换最后一项`)
-                        diffLog(String(originalItem), String(newItem), showDiff, showOriginalValue)
+                        console.log(`云列表 ${chalk.green(data.name)} 替换最后一项：`)
+                        diffLog(originalItem, newItem, showDiff, showOriginalValue)
                     })
                     data.replaced.connect((
                         { index, originalItem, newItem }: KittenCloudListReplaceMessageObject
                     ): void => {
-                        console.log(`云列表 ${chalk.green(data.name)} 替换第 ${index + 1} 项`)
-                        diffLog(String(originalItem), String(newItem), showDiff, showOriginalValue)
+                        console.log(`云列表 ${chalk.green(data.name)} 替换第 ${index + 1} 项：`)
+                        diffLog(originalItem, newItem, showDiff, showOriginalValue)
                     })
                 } else {
                     throw new Error("未知的云数据类型")

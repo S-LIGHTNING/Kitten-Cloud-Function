@@ -7,7 +7,7 @@ module.exports = {
     entryPoints: [
         "src/**/*"
     ],
-    out: path.resolve("docs", project.version),
+    out: path.resolve(__dirname, "docs"),
     theme: "default",
     plugin: [
         "typedoc-plugin-mermaid",

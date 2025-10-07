@@ -1,4 +1,4 @@
-# 源码云功能
+# <img height="128" alt="源码云功能" src="https://creation.bcmcdn.com/716/appcraft/IMAGE_TT6kuv4Oo_1759809961794.png">
 
 [![Gitee Repo stars](https://gitee.com/SLIGHTNING/Kitten-Cloud-Function/badge/star.svg)](https://gitee.com/slightning/Kitten-Cloud-Function) [![Gitee Downloads (all assets, latest release)](https://img.shields.io/github/downloads/S-LIGHTNING/Kitten-Cloud-Function/latest/total)](https://gitee.com/slightning/Kitten-Cloud-Function/releases/latest) [![Gitee Downloads (all assets, latest release)](https://img.shields.io/github/downloads-pre/S-LIGHTNING/Kitten-Cloud-Function/latest/total)](https://gitee.com/slightning/Kitten-Cloud-Function/releases) [![Gitee License](https://img.shields.io/github/license/S-LIGHTNING/Kitten-Cloud-Function)](https://gitee.com/slightning/Kitten-Cloud-Function/blob/main/LICENSE)
 
@@ -100,7 +100,7 @@ CoCo 控件兼容 Creation Project，可在打包后的应用中使用。
 
 专用版在 Creation Project 和打包后的应用中可用。
 
-请参考下面的命令自行构建专用版，多个用户或作品用英文逗号分开。
+请参考下面的命令自行构建专用版，建议使用 Node.js 22 及以上版本，多个用户或作品用英文逗号分开。
 
 ```bash
 USER="你的编程猫账号ID"
@@ -110,10 +110,13 @@ CONNECTING_WORK="要连接的作品的ID"
 git clone https://gitee.com/slightning/Kitten-Cloud-Function.git
 cd Kitten-Cloud-Function
 npm install
-npx wabpeck --config coco-widget.webpack.config.js --env user=$USER --env usingWork=$USING_WORK --env connectingWork=$CONNECTING_WORK
+# 生成 CoCo 控件
+npx scw-build coco --config webpack.widget.js --env user=$USER --env usingWork=$USING_WORK --env connectingWork=$CONNECTING_WORK
+# 生成 Creation Project 1 控件
+npx scw-build creationproject1 --env platform=\"Creation Project 1\" --config webpack.widget.js --env user=$USER --env usingWork=$USING_WORK --env connectingWork=$CONNECTING_WORK
+# 生成 Creation Project 2 控件
+npx scw-build creationproject2 --env platform=\"Creation Project 2\" --config webpack.widget.js --env user=$USER --env usingWork=$USING_WORK --env connectingWork=$CONNECTING_WORK
 ```
-
-注：`wabpeck`是为提高门槛有意而为之的，请自行纠正。
 
 ##### 获取完整版
 
@@ -166,13 +169,10 @@ import { KittenCloudFunction } from "kitten-cloud-function"
 ##### 浏览器
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/axios@1/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/diff@7/dist/diff.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/crypto-browserify@3/example/bundle.js"></script>
-<script>
-    window.crypto = require("crypto")
-</script>
-<script src="https://cdn.jsdelivr.net/npm/kitten-cloud-function-browser@3/dist/kitten-cloud-function-browser.min.js"></script>
+<script src="https://unpkg.com/axios@1/dist/axios.min.js"></script>
+<script src="https://unpkg.com/diff@7/dist/diff.min.js"></script>
+<script src="https://unpkg.com/@slightning/anything-to-string@1/dist/cjs/bundle.min.js"></script>
+<script src="https://unpkg.com/kitten-cloud-function@1/dist/kitten-cloud-function-browser.min.js"></script>
 <script>
     const { KittenCloudFunction } = window.KittenCloudFunction
     // Your code here...
@@ -229,7 +229,7 @@ console.log(variable.get())
 variable.set("好耶")
 
 // 使用 await 等待上传
-await variable.set("好耶！是源码云功能 v1.2.0，我们有救了！")
+await variable.set("好耶！是源码云功能 v1.2.1 更新，我们有救了！")
 ```
 
 ##### ③查看私有云变量排行榜
@@ -263,13 +263,15 @@ list.add(10, "好耶")
 list.remove(1)
 ```
 
-更多云列表操作请参考[源码云功能 API 文档](https://s-lightning.github.io/Kitten-Cloud-Function/?latest&path=classes/module_cloud_data_kitten_cloud_list.KittenCloudList.html)。
+更多云列表操作请参考[源码云功能 API 文档](https://s-lightning.github.io/Kitten-Cloud-Function/classes/module_cloud_data_kitten_cloud_list.KittenCloudList.html)。
 
 #### 5.更多功能
 
-请参考[源码云功能 API 文档](https://s-lightning.github.io/Kitten-Cloud-Function/?latest&path=hierarchy.html)。
+请参考[源码云功能 API 文档](https://s-lightning.github.io/Kitten-Cloud-Function/hierarchy.html)。
 
 ### 命令行版
+
+需要 Node.js 16 及以上版本。
 
 #### 1.安装
 
@@ -282,6 +284,8 @@ $ npm install kitten-cloud-function -g
 ```
 $ kcf set-authorization
 ```
+
+身份即 Cookie 中的 authorization。
 
 #### 3.设置作品
 
@@ -335,7 +339,7 @@ console.log(variable.get())
 
 ### 3.更多功能配置
 
-请参考[源码云功能 API 文档](https://s-lightning.github.io/Kitten-Cloud-Function/?latest&path=/classes/module_kitten_cloud_function_config_layer.KittenCloudFunctionConfigLayer.html)。
+请参考[源码云功能 API 文档](https://s-lightning.github.io/Kitten-Cloud-Function/classes/module_kitten_cloud_function_config_layer.KittenCloudFunctionConfigLayer.html)。
 
 ## 四、技术信息
 
@@ -355,7 +359,7 @@ console.log(variable.get())
     - [Readline for Passwords](https://github.com/jlyonsmith/readline-password#readme)
     - [chalk](https://github.com/chalk/chalk#readme)
 - CoCo 控件适配
-    - [SLIGHTNING CoCo 控件框架](https://www.npmjs.com/package/slightning-coco-widget)
+    - [SLIGHTNING CoCo 控件框架](https://s-lightning.github.io/slightning-coco-widget/)
 - 其他
     - [![Axios](https://axios-http.com/assets/logo.svg)](https://axios-http.com/)
     - [Anything To String](https://github.com/S-LIGHTNING/anything-to-string#readme)

@@ -539,7 +539,7 @@ export class CodemaoUserInfo {
      */
     constructor(info: CodemaoUserInfoObject) {
         for (const key in this) {
-            if (key.startsWith("__") && this[key] == Node) {
+            if (key.startsWith("__") && this[key] == null) {
                 Object.defineProperty(this, key, {
                     value: undefined,
                     enumerable: false,

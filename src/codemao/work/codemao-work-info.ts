@@ -100,7 +100,7 @@ async function testWorkEditorByKittenCloud(
     }
 
     const url: string = await (async (): Promise<string> => {
-        const scheme: "wss" | "ws" = typeof global == "object" || window.location.protocol != "http:" ? "wss" : "ws"
+        const scheme: "wss" | "ws" = typeof process == "object" || window.location.protocol != "http:" ? "wss" : "ws"
         const host: string = ["socketcv", "codemao", "cn"].join(".")
         const port = 9096
         const path = "/cloudstorage/"
@@ -692,7 +692,7 @@ export class CodemaoWorkInfo {
      */
     public constructor(info: CodemaoWorkInfoObject) {
         for (const key in this) {
-            if (key.startsWith("__") && this[key] == Node) {
+            if (key.startsWith("__") && this[key] == null) {
                 Object.defineProperty(this, key, {
                     value: undefined,
                     enumerable: false,

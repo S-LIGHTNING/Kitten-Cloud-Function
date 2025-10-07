@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100">
+    <g class="start_on_click blocklyDraggable" transform="translate(33.333335876464844, 30.888700485229492)">
+        <path class="blocklyPath" fill="rgba(96, 143, 238, 1)" stroke="rgba(73, 110, 184, 1)" stroke-opacity="1"
+            stroke-width="1px"
+            d="m 0,2 a 2 2 0 0 1 2 -2 H 103 a 20 20 0 0 1 20 20 v 0 a 20 20 0 0 1 -20 20 H 2 a 2 2 0 0 1 -2 -2 z">
+        </path>
+        <g transform="translate(-24, -8)">
+            <circle cx="24" cy="24" r="24" fill="rgba(96, 143, 238, 1)" stroke="rgba(73, 110, 184, 1)"
+                class="blockly_head_icon_wrapper"></circle>
+            <image height="38px" width="38px" x="5" y="5" class="blockly_head_icon"
+                xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAwIiBoZWlnaHQ9IjEwMDAiIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPg0KICAgIDxjaXJjbGUgcj0iNTAwIiBjeD0iNTAwIiBjeT0iNTAwIiBmaWxsPSJ3aGl0ZSIgLz4NCiAgICA8cGF0aA0KICAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTE0LCAtMTIpIg0KICAgICAgICBkPSJNNjE2LjY1MjggMjczLjA2NjY2N2ExODcuNjY1MDY3IDE4Ny42NjUwNjcgMCAwIDEgMTg2LjkxNDEzMyAxNzMuMTkyNTMzQTEzNS43MTQxMzMgMTM1LjcxNDEzMyAwIDAgMSA5MjEuNiA1ODAuOTQ5MzMzIDEzNS42OCAxMzUuNjggMCAwIDEgNzg2LjA5MDY2NyA3MTYuOGgtMzI5Ljc5NjI2N2wtMC4wMzQxMzMtMC4xNzA2NjdoLTAuNTQ2MTM0QTE1Ni4wNTc2IDE1Ni4wNTc2IDAgMCAxIDMwNy4yIDU2MC41NzE3MzNhMTU2LjE2IDE1Ni4xNiAwIDAgMSAxMjkuOTc5NzMzLTE1NC4wNDM3MzNBMTg3LjU5NjggMTg3LjU5NjggMCAwIDEgNjE2LjY1MjggMjczLjA2NjY2N3ogbS01MC40NDkwNjcgMTAyLjQiDQogICAgICAgIGZpbGw9InJnYig5NiwgMTQzLCAyMzgpIj48L3BhdGg+DQo8L3N2Zz4NCg=="
+                ></image>
+            <rect height="38px" width="38px" fill-opacity="0"></rect>
+        </g><text font-size="12pt" dominant-baseline="central"
+        fill="white"
+        style="font-family: NotoSansCJKsc, sans-serif;"
+            transform="translate(27,20)">源码云功能</text>
+    </g>
+</svg>

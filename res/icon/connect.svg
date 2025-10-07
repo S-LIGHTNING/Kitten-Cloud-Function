@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="624" height="624" viewBox="100 100 624 624">
+    <g>
+        <path d="M 242.8 299.2 a 169.2 169.2 0 0 1 338.4 0" fill="none" stroke="white" stroke-width="60" />
+        <circle r="30" cx="581.2" cy="299.2" fill="white" />
+        <path d="M 581.2 299.2 a 112.8 112.8 0 0 1 0 225.6" fill="none" stroke="white" stroke-width="60" />
+        <circle r="30" cx="242.8" cy="524.8" fill="white" />
+        <circle r="30" cx="581.2" cy="524.8" fill="white" />
+        <path d="M 242.8 299.2 a 112.8 112.8 0 0 0 0 225.6" fill="none" stroke="white" stroke-width="60" />
+        <circle r="30" cx="242.8" cy="299.2" fill="white" />
+    </g>
+    <g>
+        <circle r="30" cx="342" cy="352" fill="white" />
+        <line x1="342" x2="342" y1="352" y2="412" stroke="white" stroke-width="60" />
+        <circle r="30" cx="482" cy="352" fill="white" />
+        <line x1="482" x2="482" y1="352" y2="412" stroke="white" stroke-width="60" />
+        <line x1="312" x2="512" y1="412" y2="412" stroke="white" stroke-width="60" />
+        <circle r="30" cx="312" cy="412" fill="white" />
+        <circle r="30" cx="512" cy="412" fill="white" />
+        <path d="M 312 412 v 80 a 100 100 0 0 0 200 0 v -80" fill="none" stroke="white" stroke-width="60" />
+        <line x1="412" x2="412" y1="592" y2="694" stroke="white" stroke-width="60" />
+        <circle r="30" cx="412" cy="694" fill="white" />
+    </g>
+    <!-- <g>
+        <line x1="412" x2="412" y1="0" y2="824" stroke="black" stroke-width="5" />
+        <line x1="0" x2="824" y1="412" y2="412" stroke="black" stroke-width="5" />
+        <rect x="50" y="50" width="724" height="724" fill="none" stroke="#C00000" stroke-width="100" stroke-opacity="0.5" />
+    </g> -->
+</svg>

@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig, AxiosResponse } from "axios"
 
-export const isNode: boolean = typeof global == "object"
+export const isNode: boolean = typeof window == "undefined" && typeof process == "object"
 export const isBrowser: boolean = typeof window == "object"
 export const isCodemaoWindow: boolean = isBrowser && location.hostname.endsWith("codemao.cn")
 
@@ -11,7 +11,7 @@ export async function getAuthorization(): Promise<string | null> {
         throw new Error("当前环境不支持该方法")
     }
     try {
-        return String(await (await import("fs")).promises.readFile((await import("path")).resolve(dirs.config, "authorization.txt")))
+        return String(await (await import(/* webpackMode: "eager" */"fs")).promises.readFile((await import(/* webpackMode: "eager" */"path")).resolve(dirs.config, "authorization.txt")))
     } catch (error) {
         if (error instanceof Error && "code" in error && error.code == "ENOENT") {
             return null
@@ -229,7 +229,7 @@ export const CodemaoLocalStorage: Storage = ((): Storage => {
 
             private save(): void {
                 (async (): Promise<void> => {
-                    (await import("fs")).promises.writeFile(this.filePath, JSON.stringify(this.store))
+                    (await import(/* webpackMode: "eager" */"fs")).promises.writeFile(this.filePath, JSON.stringify(this.store))
                 })()
             }
 
@@ -263,7 +263,7 @@ export const CodemaoLocalStorage: Storage = ((): Storage => {
 })()
 
 export async function CodemaoAxios<T>(argument: AxiosRequestConfig): Promise<T> {
-    const axios = await import("axios")
+    const axios = await import(/* webpackMode: "eager" */"axios")
     const axiosDefault: <T>(
         argument: AxiosRequestConfig
     ) => Promise<AxiosResponse<T>> = isNode || isCodemaoWindow ? axios.default : CoCoCodemaoEnvironmentServerAxios
@@ -308,7 +308,7 @@ export type CodemaoWebSocket = import("websocket").w3cwebsocket | WebSocket | Co
 
 export async function CodemaoWebSocket(url: string): Promise<CodemaoWebSocket> {
     if (isNode) {
-        const WebSocket: typeof import("websocket").w3cwebsocket  = (await import("websocket")).w3cwebsocket
+        const WebSocket: typeof import("websocket").w3cwebsocket  = (await import(/* webpackMode: "eager" */"websocket")).w3cwebsocket
         const authorization: string | null = await getAuthorization()
         if (authorization == null) {
             return new WebSocket(url)

@@ -277,7 +277,7 @@ export async function setXCreationToolsDeviceAuth(argument: AxiosRequestConfig):
     let clientID: string = getClientID()
     argument.headers ??= {}
     argument.headers["X-Creation-Tools-Device-Auth"] = JSON.stringify({
-        sign: (await import("crypto-js")).SHA256("pBlYqXbJDu" + timestamp + clientID).toString().toLocaleUpperCase(),
+        sign: (await import(/* webpackMode: "eager" */"crypto-js")).SHA256("pBlYqXbJDu" + timestamp + clientID).toString().toLocaleUpperCase(),
         timestamp,
         client_id: clientID
     })
